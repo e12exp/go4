@@ -1,0 +1,11 @@
+*.hotstart
+*.root
+.go4
+.localmap
+.rootmap
+G__Go4ExampleSimple.*
+MainUserAnalysis
+*.d
+*.o
+*.so
+*.so.*
