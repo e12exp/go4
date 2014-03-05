@@ -9,3 +9,5 @@ MainUserAnalysis
 *.o
 *.so
 *.so.*
+TXXXConfig.h
+TXXXConfig.h.back

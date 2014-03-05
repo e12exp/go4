@@ -17,32 +17,9 @@
 #define TUNPACKPROCESSOR_H
 
 #include <TCutG.h>
-
-#define MAX_SFP           4
-#define MAX_SLAVE        1
-#define N_CHA           4 
-
-// nr of slaves on SFP 0  1  2  3
-//                     |  |  |  |
-#define NR_SLAVES     {MAX_SLAVE, 0, 0, 0} 
-
-#define TIME_ZERO {0,0} //{port id, slave id}
-
-#define RPID_CUTG 0
+#include "TXXXConfig.h"
 
 #include "TGo4EventProcessor.h"
-
-// Only draw traces every n-th event
-#define DRAW_TRACE_EVERY 1 
-
-// Only refresh hists every n-th event
-#define REFR_HIST_EVERY 100
-
-#define FBX_DFT 0
-#define FBX_FFT 1
-
-#define FBX_HIST_ADC 1
-#define FBX_ADC_BITS 14
 
 class TXXXParam;
 class TGo4Fitter;
@@ -73,6 +50,10 @@ class TXXXProc : public TGo4EventProcessor {
       TH1	    *h_trace_adc_diff [MAX_SFP][MAX_SLAVE][N_CHA];
       TH1	    *h_hist_adc_diff [MAX_SFP][MAX_SLAVE][N_CHA];
       TH2	    *h_adc_diff_vs_adc [MAX_SFP][MAX_SLAVE][N_CHA];
+#endif
+
+#if DIFF_TS
+      TH1	    *h_diff_ts[MAX_SFP][MAX_SLAVE][N_CHA];
 #endif      
 
       // CAEN v785 ADC

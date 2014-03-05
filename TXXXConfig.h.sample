@@ -1,0 +1,60 @@
+#ifndef _TXXXCONFIG_H_
+#define _TXXXCONFIG_H_
+
+#define MAX_SFP	      4
+#define MAX_SLAVE     1
+#define N_CHA	      16
+
+// nr of slaves on SFP 0  1  2  3
+//                     |  |  |  |
+#define NR_SLAVES     {MAX_SLAVE, 0, 0, 0} 
+
+#define TIME_ZERO {0,0} //{port id, slave id}
+
+#define RPID_CUTG 0
+
+// Only draw traces every n-th event
+#define DRAW_TRACE_EVERY 1 
+
+// Only refresh hists every n-th event
+#define REFR_HIST_EVERY 100
+
+#define DIFF_TS 0
+
+#define FBX_DFT 0
+#define FBX_FFT 0
+
+#define FBX_HIST_ADC 1
+#define FBX_ADC_BITS 14
+
+#define ECUT 0
+#define EMIN 19500
+#define EMAX 22500
+
+#define ONLY_SELFTRIGGERED 0
+
+#define RPID_CUT 0
+#define RPID_CUTG 0
+
+#define X1 -28719
+#define Y1 38081
+#define X2 -3424
+#define Y2 5934
+#define XMAX -3100
+
+//RPID on/off
+#define RPID 0
+
+#define F_ADC 50
+
+//Time over Threshold on/off
+#define TOT 0
+
+
+#define TRACE_SIZE 220         // in samples
+#define SIS_TRACE_LEN 3000
+
+#define DEBUG 0
+
+#endif
+

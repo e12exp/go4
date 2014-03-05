@@ -37,42 +37,11 @@
 #include "struct_gosip.h"
 #include "struct_event.h"
 
-#define ECUT 0
-#define EMIN 19500
-#define EMAX 22500
-
-#define ONLY_SELFTRIGGERED 0
-
-#define RPID_CUT 0
-#define RPID_CUTG 0
-
-#define X1 -28719
-#define Y1 38081
-#define X2 -3424
-#define Y2 5934
-#define XMAX -3100
-
-//RPID on/off
-#define RPID 0
-
 #if RPID
 #define M ((Y2 - Y1) / (X2 - X1))
 #define N (Y2 - X2*M)
 #define Y(x) (M*(x) + N)
 #endif
-
-#define F_ADC 50
-
-//Time over Threshold on/off
-#define TOT 0
-
-
-#define TRACE_SIZE 4096         // in samples
-#define SIS_TRACE_LEN 3000
-
-//#define N_CHA  1                // no. of ADC channels per febex card
-
-#define DEBUG 0
 
 #if DEBUG
 #define DBG(msg) std::cerr << msg;
@@ -121,12 +90,12 @@ TXXXProc::TXXXProc(const char *name):TGo4EventProcessor(name)
           sprintf(chead, "Febex Energy %2d %2d", l_j, l_k);
           sprintf(chis, "febex_energy_%02d_%02d", l_j, l_k);
           h_energy_fpga[l_i][l_j][l_k] =
-            MakeTH1('I', chis, chead, 1000, 0, 0xFFFF);
+            MakeTH1('I', chis, chead, 4096, 0, 0xFFFF);
         }
 
        for (l_k = 0; l_k < N_CHA; l_k++) {
-	  h_evse[l_i][l_j][l_k] = MakeTH2('I', Form("febex_e_%02d_%02d-%02d", l_i, l_k, (l_k + 1) % N_CHA), Form("Febex %d - %d vs %d",
-		l_i, l_k, (l_k + 1) % N_CHA),
+	  h_evse[l_i][l_j][l_k] = MakeTH2('I', Form("febex_e_%02d_%02d-%02d", l_j, l_k, (l_k + 1) % N_CHA), Form("Febex %d - %d vs %d",
+		l_j, l_k, (l_k + 1) % N_CHA),
 	      500,0,0xffff,500,0,0xffff);
         }
 
@@ -143,6 +112,9 @@ TXXXProc::TXXXProc(const char *name):TGo4EventProcessor(name)
 	{
 	  h_dft_ampl[l_i][l_j][l_k] = MakeTH1('D', Form("dft_amplitude_%02d_%02d", l_j, l_k),
 	      Form("DFT Amplitude %02d %02d", l_j, l_k), TRACE_SIZE/2-1, 0, F_ADC/2);
+	}
+	for(l_k = 0; l_k < N_CHA; l_k++)
+	{
 	  h_dft_phase[l_i][l_j][l_k] = MakeTH1('D', Form("dft_phase_%02d_%02d", l_j, l_k),
 	      Form("DFT Phase %02d %02d", l_j, l_k), TRACE_SIZE/2-1, 0, F_ADC/2);
 	}
@@ -173,6 +145,17 @@ TXXXProc::TXXXProc(const char *name):TGo4EventProcessor(name)
 	{
 	  h_adc_diff_vs_adc[l_i][l_j][l_k] = MakeTH2('I', Form("adc_diff_vs_adc_%02d_%02d", l_j, l_k),
 	      Form("ADC Differential vs ADC %02d %02d", l_j, l_k), (1 << FBX_ADC_BITS)/5-1, 0, (1 << FBX_ADC_BITS) - 1, (1 << FBX_ADC_BITS)/5 - 1, -(1 << (FBX_ADC_BITS-1)), (1 << (FBX_ADC_BITS-1)) - 1);
+	}
+#endif
+
+#if DIFF_TS
+	for(l_k = 0; l_k < N_CHA; l_k++)
+	{
+	  h_diff_ts[l_i][l_j][l_k] = MakeTH1('I', Form("ts_diff_%d_%02d_%02d-%02d",
+		l_i, l_j, l_k, (l_k + 1) % N_CHA),
+	      Form("Timestamp Difference SFP %d, Module %02d, Channel %02d vs %02d",
+		l_i, l_j, l_k, (l_k + 1) % N_CHA),
+	      1000,-500,499);
 	}
 #endif
       }
@@ -281,6 +264,11 @@ Bool_t TXXXProc::BuildEvent(TGo4EventElement * target)
 
   int crate_nr;
 
+  uint32_t energy[l_sfp_slaves[0]][N_CHA];
+#if DIFF_TS
+  int64_t timestamp[l_sfp_slaves[0]][N_CHA];
+#endif
+
   while((psubevt = fInput->NextSubEvent()))
   {
     crate_nr = psubevt->GetSubcrate();
@@ -312,8 +300,6 @@ Bool_t TXXXProc::BuildEvent(TGo4EventElement * target)
             break;
           }
         }
-
-	      uint32_t energy[N_CHA];
 
 //              if (gosip->num_submemories > 0) {
 		// loop over ADC channels 
@@ -392,6 +378,10 @@ Bool_t TXXXProc::BuildEvent(TGo4EventElement * target)
 		    evnt->n_f = *pl_tmp & 0xffff;
 		    evnt->n_s = *pl_tmp++ >> 16;
 
+#if DIFF_TS
+		    timestamp[l_j][l_cha] = (int64_t)evnt->timestamp;
+#endif
+
 		    //printf("Nf: %d, Ns: %d\n", evnt->n_f, evnt->n_s);
 
 		    //Check Event Buffer ident 0xAFFE
@@ -439,7 +429,7 @@ Bool_t TXXXProc::BuildEvent(TGo4EventElement * target)
 		    {
 #endif
 			    h_energy_fpga[l_i][l_j][l_cha]->Fill(evnt->energy);
-			    energy[l_cha] = evnt->energy;
+			    energy[l_j][l_cha] = evnt->energy;
 
 //			    if(!(evnt->loverflow | evnt->hoverflow))
 			    if(!(evnt->n_f == 0 && evnt->n_s == 0))
@@ -568,8 +558,17 @@ Bool_t TXXXProc::BuildEvent(TGo4EventElement * target)
 		    
                   }
 
-		  for(int z = 0; z < N_CHA; z++)
-		   h_evse[l_i][l_j][z]->Fill(energy[(z + 1) % N_CHA], energy[z]);
+		  for(l_j = 0; l_j < l_sfp_slaves[0]; l_j++)
+		  {
+		    for(int z = 0; z < N_CHA; z++)
+		    {
+		      h_evse[0][l_j][z]->Fill(energy[l_j][(z + 1) % N_CHA], energy[l_j][z]);
+
+#if DIFF_TS
+		      h_diff_ts[0][l_j][z]->Fill(timestamp[l_j][z] - timestamp[l_j][(z+1)%N_CHA]);
+#endif
+		    }
+		  }
 
 	  break;	  
 	case 1:

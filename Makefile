@@ -25,6 +25,17 @@ DOOPTIMIZATION = false
 
 all: build
 
+TXXXProc.o:	TXXXConfig.h
+
+TXXXConfig.h:	TXXXConfig.h.sample
+	@echo "Creating default configuration file"
+	@echo "------------------------"
+	@echo "  Backup of original configuration file is stored to TXXXConfig.h.back"
+	@echo "------------------------"
+	@touch TXXXConfig.h
+	@cp TXXXConfig.h TXXXConfig.h.back
+	@cp TXXXConfig.h.sample TXXXConfig.h
+
 include Module.mk
 
 build: all-$(MODULE_NAME)
