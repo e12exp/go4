@@ -1,6 +1,9 @@
 #ifndef _TXXXCONFIG_H_
 #define _TXXXCONFIG_H_
 
+#define FEBEX_EVT_TYPE 10
+#define FEBEX_SUBEVT_TYPE 1
+
 #define MAX_SFP	      4
 #define MAX_SLAVE     1
 #define N_CHA	      16

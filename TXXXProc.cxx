@@ -232,7 +232,7 @@ Bool_t TXXXProc::BuildEvent(TGo4EventElement * target)
   //{
 
 
-  int crate_nr;
+  int evt_type, subevt_type;
 
   uint32_t energy[l_sfp_slaves[0]][N_CHA];
 #if DIFF_TS
@@ -241,16 +241,16 @@ Bool_t TXXXProc::BuildEvent(TGo4EventElement * target)
 
   while((psubevt = fInput->NextSubEvent()))
   {
-    crate_nr = psubevt->GetSubcrate();
-    
+    evt_type = psubevt->GetType();
+    subevt_type = psubevt->GetSubtype();
+
     pl_se_dat = (UInt_t *) psubevt->GetDataField();
     pl_se_end = pl_se_dat + psubevt->GetIntLen();
 
     pl_tmp = pl_se_dat;
 
-  switch(crate_nr)
+  if(evt_type == FEBEX_EVT_TYPE && subevt_type == FEBEX_SUBEVT_TYPE)
   {
-    case 0:
      // Febex 
 
   if ((*pl_tmp) == 0xbad00bad) {
