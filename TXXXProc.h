@@ -56,16 +56,9 @@ class TXXXProc : public TGo4EventProcessor {
       TH1	    *h_diff_ts[MAX_SFP][MAX_SLAVE][N_CHA];
 #endif      
 
-      // CAEN v785 ADC
-      TH1	   *h_energy_caen[32];
-      // SIS3302 ADC
-      TH1	   *h_energy_sis[8];
-      TH1	   *h_trace_sis[8];
-
       TH1          *h_time_stamp [MAX_SFP][MAX_SLAVE];  
       TH1          *h_time_diff  [MAX_SFP][MAX_SLAVE];  
 
-      TH1          *h_trig_type;  
       TH1          *h_hit_pattern;  
       TH1          *h_num_hit;  
       TH1          *h_data_size; 

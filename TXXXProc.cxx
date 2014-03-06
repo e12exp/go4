@@ -71,8 +71,6 @@ TXXXProc::TXXXProc(const char *name):TGo4EventProcessor(name)
 {
   cout << "**** TXXXProc: Create instance " << name << endl;
 
-  Text_t chis[128];
-  Text_t chead[128];
   Int_t l_i, l_j, l_k;
 
   for (l_i = 0; l_i < MAX_SFP; l_i++) {
@@ -80,71 +78,77 @@ TXXXProc::TXXXProc(const char *name):TGo4EventProcessor(name)
       for (l_j = 0; l_j < l_sfp_slaves[l_i]; l_j++) {
 
         for (l_k = 0; l_k < N_CHA; l_k++) {
-          sprintf(chead, "Febex Trace %2d %2d", l_j,
-                  l_k);
-          sprintf(chis, "febex_trace_%02d_%02d", l_j, l_k);
           h_trace[l_i][l_j][l_k] =
-            MakeTH1('I', chis, chead, TRACE_SIZE-1, 0, TRACE_SIZE-1);
+            new TH1I(Form("febex_trace_%d_%03d_%02d", l_i, l_j, l_k),
+		Form("Trace %02d", l_k), TRACE_SIZE-1, 0, TRACE_SIZE-1);
+	  AddHistogram(h_trace[l_i][l_j][l_k], Form("Febex/SFP %d/Febex %03d/Trace", l_i, l_j));
         }
        for (l_k = 0; l_k < N_CHA; l_k++) {
-          sprintf(chead, "Febex Energy %2d %2d", l_j, l_k);
-          sprintf(chis, "febex_energy_%02d_%02d", l_j, l_k);
           h_energy_fpga[l_i][l_j][l_k] =
-            MakeTH1('I', chis, chead, 4096, 0, 0xFFFF);
+            new TH1I(Form("febex_energy_%d_%03d_%02d", l_i, l_j, l_k),
+		Form("Energy %02d", l_k), 4096, 0, 0xFFFF);
+	  AddHistogram(h_energy_fpga[l_i][l_j][l_k], Form("Febex/SFP %d/Febex %03d/Energy", l_i, l_j));
         }
 
        for (l_k = 0; l_k < N_CHA; l_k++) {
-	  h_evse[l_i][l_j][l_k] = MakeTH2('I', Form("febex_e_%02d_%02d-%02d", l_j, l_k, (l_k + 1) % N_CHA), Form("Febex %d - %d vs %d",
-		l_j, l_k, (l_k + 1) % N_CHA),
+	  h_evse[l_i][l_j][l_k] = new TH2I(Form("febex_e_%d_%03d_%02d-%02d", l_i, l_j, l_k, (l_k + 1) % N_CHA), Form("%02d vs %02d",
+		l_k, (l_k + 1) % N_CHA),
 	      500,0,0xffff,500,0,0xffff);
+	  AddHistogram(h_evse[l_i][l_j][l_k], Form("Febex/SFP %d/Febex %03d/Energy", l_i, l_j));
         }
 
 
         for (l_k = 0; l_k < N_CHA; l_k++) {
-          sprintf(chead, "Febex QPID %2d %2d", l_j, l_k);
-          sprintf(chis, "febex_qpid_%02d_%02d", l_j, l_k);
           h_rpid_fpga[l_i][l_j][l_k] =
-            MakeTH2('I', chis, chead, 1000, 0, 66000, 1000, 0, 66000);
+            new TH2I(Form("febex_qpid_%d_%03d_%02d", l_i, l_j, l_k), Form("QPID %02d", l_k), 1000, 0, 66000, 1000, 0, 66000);
+	  AddHistogram(h_rpid_fpga[l_i][l_j][l_k], Form("Febex/SFP %d/Febex %03d/PID", l_i, l_j));
         }
 
 #if (FBX_FFT || FBX_DFT)
 	for(l_k = 0; l_k < N_CHA; l_k++)
 	{
-	  h_dft_ampl[l_i][l_j][l_k] = MakeTH1('D', Form("dft_amplitude_%02d_%02d", l_j, l_k),
-	      Form("DFT Amplitude %02d %02d", l_j, l_k), TRACE_SIZE/2-1, 0, F_ADC/2);
+	  h_dft_ampl[l_i][l_j][l_k] = new TH1D(Form("dft_amplitude_%d_%03d_%02d", l_i, l_j, l_k),
+	      Form("Amplitude %02d", l_k), TRACE_SIZE/2-1, 0, F_ADC/2);
+	  AddHistogram(h_dft_ampl[l_i][l_j][l_k], "Febex/SFP %d/Febex %03d/DFT", l_i, l_j);
 	}
 	for(l_k = 0; l_k < N_CHA; l_k++)
 	{
-	  h_dft_phase[l_i][l_j][l_k] = MakeTH1('D', Form("dft_phase_%02d_%02d", l_j, l_k),
-	      Form("DFT Phase %02d %02d", l_j, l_k), TRACE_SIZE/2-1, 0, F_ADC/2);
+	  h_dft_phase[l_i][l_j][l_k] = new TH1D(Form("dft_phase_%d_%03d_%02d", l_i, l_j, l_k),
+	      Form("Phase %02d", l_k), TRACE_SIZE/2-1, 0, F_ADC/2);
+	  AddHistogram(h_dft_phase[l_i][l_j][l_k], "Febex/SFP %d/Febex %03d/DFT", l_i, l_j);
 	}
 #endif
 
 #if FBX_HIST_ADC
 	for(l_k = 0; l_k < N_CHA; l_k++)
 	{
-	  h_hist_adc[l_i][l_j][l_k] = MakeTH1('I', Form("adc_hist_%02d_%02d", l_j, l_k),
-	      Form("ADC Histogram %02d %02d", l_j, l_k), (1 << FBX_ADC_BITS), 0, (1 << FBX_ADC_BITS));
+	  h_hist_adc[l_i][l_j][l_k] = new TH1I(Form("adc_hist_%d_%03d_%02d", l_i, l_j, l_k),
+	      Form("ADC Histogram %02d", l_k), (1 << FBX_ADC_BITS), 0, (1 << FBX_ADC_BITS));
+	  AddHistogram(h_hist_adc[l_i][l_j][l_k], Form("Febex/SFP %d/Febex %03d/Misc", l_i, l_j));
 	}
 	for(l_k = 0; l_k < N_CHA; l_k++)
 	{
-	  h_hist_adc_dev[l_i][l_j][l_k] = MakeTH1('D', Form("adc_hist_dev_%02d_%02d", l_j, l_k),
-	      Form("ADC Histogram Deviation%02d %02d", l_j, l_k), (1 << FBX_ADC_BITS) - 1, 0, (1 << FBX_ADC_BITS) - 1);
+	  h_hist_adc_dev[l_i][l_j][l_k] =  new TH1D(Form("adc_hist_dev_%d_%03d_%02d", l_i, l_j, l_k),
+	      Form("ADC Histogram Deviation %02d", l_k), (1 << FBX_ADC_BITS) - 1, 0, (1 << FBX_ADC_BITS) - 1);
+	  AddHistogram(h_hist_adc_dev[l_i][l_j][l_k], Form("Febex/SFP %d/Febex %03d/Misc", l_i, l_j));
 	}
 	for(l_k = 0; l_k < N_CHA; l_k++)
 	{
-	  h_trace_adc_diff[l_i][l_j][l_k] = MakeTH1('I', Form("adc_diff_%02d_%02d", l_j, l_k),
-	      Form("ADC Differential %02d %02d", l_j, l_k), TRACE_SIZE-2, 0, TRACE_SIZE-2);
+	  h_trace_adc_diff[l_i][l_j][l_k] = new TH1I(Form("adc_diff_%d_%03d_%02d", l_i, l_j, l_k),
+	      Form("ADC Differential %02d", l_k), TRACE_SIZE-2, 0, TRACE_SIZE-2);
+	  AddHistogram(h_trace_adc_diff[l_i][l_j][l_k], Form("Febex/SFP %d/Febex %03d/Misc", l_i, l_j));
 	}
 	for(l_k = 0; l_k < N_CHA; l_k++)
 	{
-	  h_hist_adc_diff[l_i][l_j][l_k] = MakeTH1('I', Form("adc_diff_hist_%02d_%02d", l_j, l_k),
-	      Form("ADC Differential Histogram %02d %02d", l_j, l_k), (1 << FBX_ADC_BITS) - 1, -(1 << (FBX_ADC_BITS-1)), (1 << (FBX_ADC_BITS-1)) - 1);
+	  h_hist_adc_diff[l_i][l_j][l_k] = new TH1I(Form("adc_diff_hist_%d_%03d_%02d", l_i, l_j, l_k),
+	      Form("ADC Differential Histogram %02d", l_k), (1 << FBX_ADC_BITS) - 1, -(1 << (FBX_ADC_BITS-1)), (1 << (FBX_ADC_BITS-1)) - 1);
+	  AddHistogram(h_hist_adc_diff[l_i][l_j][l_k], Form("Febex/SFP %d/Febex %03d/Misc", l_i, l_j));
 	}
 	for(l_k = 0; l_k < N_CHA; l_k++)
 	{
-	  h_adc_diff_vs_adc[l_i][l_j][l_k] = MakeTH2('I', Form("adc_diff_vs_adc_%02d_%02d", l_j, l_k),
-	      Form("ADC Differential vs ADC %02d %02d", l_j, l_k), (1 << FBX_ADC_BITS)/5-1, 0, (1 << FBX_ADC_BITS) - 1, (1 << FBX_ADC_BITS)/5 - 1, -(1 << (FBX_ADC_BITS-1)), (1 << (FBX_ADC_BITS-1)) - 1);
+	  h_adc_diff_vs_adc[l_i][l_j][l_k] = new TH2I(Form("adc_diff_vs_adc_%d_%03d_%02d", l_i, l_j, l_k),
+	      Form("ADC Differential vs ADC %02d", l_k), (1 << FBX_ADC_BITS)/5-1, 0, (1 << FBX_ADC_BITS) - 1, (1 << FBX_ADC_BITS)/5 - 1, -(1 << (FBX_ADC_BITS-1)), (1 << (FBX_ADC_BITS-1)) - 1);
+	  AddHistogram(h_adc_diff_vs_adc[l_i][l_j][l_k], Form("Febex/SFP %d/Febex %03d/Misc", l_i, l_j));
 	}
 #endif
 
@@ -162,40 +166,6 @@ TXXXProc::TXXXProc(const char *name):TGo4EventProcessor(name)
     }
   }
 
-  // CAEN ADC
-  for(l_k = 0; l_k < 32; l_k++)
-  {
-    h_energy_caen[l_k] = MakeTH1('I', Form("v785_energy_%02d", l_k), Form("CAEN v785 Energy %d", l_k), 0xfff, 0, 0xfff);
-  }
-
-  // SIS ADC
-  for(l_k = 0; l_k < 8; l_k++)
-  {
-
-    h_energy_sis[l_k] = MakeTH1('I', Form("sis3302_energy_%d", l_k), Form("SIS3302 Energy %d", l_k), 0xffff, 0, 0xffff);
-    h_trace_sis[l_k] = MakeTH1('I', Form("sis3302_trace_%d", l_k), Form("SIS3302 Trace %d", l_k), SIS_TRACE_LEN, 0, SIS_TRACE_LEN); 
-  }
- 
-  sprintf(chead, "TRIGGER TYPE");
-  sprintf(chis, "Trig");
-  h_trig_type = MakeTH1('I', chis, chead, 0x20, 0, 0x10);
-
-  /*
-  sprintf(chis, "HIT PATTERN");
-  sprintf(chead, "Hit");
-  h_hit_pattern = MakeTH1('I', chis, chead, 0x1000, 0, 0x1000);
-
-
-  sprintf(chis, "NO. HIT ");
-  sprintf(chead, "Hit");
-  h_num_hit = MakeTH1('I', chis, chead, 0x20, 0, 0x20);
-
-
-  sprintf(chis, "DATA SIZE ");
-  sprintf(chead, "Trig");
-  h_data_size = MakeTH1('I', chis, chead, 0x1000, 0, 0x1000);
-  */
-  
   num_events = 0;
 
   printf("Histograms created \n");
@@ -342,7 +312,7 @@ Bool_t TXXXProc::BuildEvent(TGo4EventElement * target)
 		    }
 
 		    //Fill Trigger Type histogram
-		    h_trig_type->Fill(gosip_sub->trigger);
+//		    h_trig_type->Fill(gosip_sub->trigger);
 
 		    //Deactivated channel
 		    if(gosip_sub->submemory_id >= N_CHA)
@@ -571,43 +541,6 @@ Bool_t TXXXProc::BuildEvent(TGo4EventElement * target)
 		  }
 
 	  break;	  
-	case 1:
-	  // VME crate
-	  if(*pl_tmp != 0)
-	  {
-	    cout << "Broken VME event. Header should be 0 (0x" << hex << *pl_tmp << ")" << endl;
-	    continue;
-	  }
-	  pl_tmp++;
-
-	  // CAEN ADC
-	  // - Header
-	  if((*pl_tmp & 0xff000000) != 0xfa000000)
-	  {
-	    cout << "Broken v785 event. Header should be 0xfa... (0x" << hex << *pl_tmp << ")" << endl;
-	    continue;
-	  }
-	  pl_tmp++;
-
-	  for(l_i = 0; l_i < 32; l_i++)
-	  {
-	    if((*pl_tmp & 0xff000000) != 0xf8000000)
-	    {
-	      cout << "Broken v785 channel. Data should be 0xf8.... (0x" << hex << *pl_tmp << ")" << endl;
-	      pl_tmp++;
-	      continue;
-	    }
-	    l_k = (*pl_tmp & 0x00ff0000) >> 16;
-	    if(l_k > 31)
-	    {
-	      cout << "Invalid v785 channel number: " << dec << (int)l_k << endl;
-	      pl_tmp++;
-	      continue;
-	    }
-	    h_energy_caen[l_k]->Fill(*pl_tmp & 0xfff);
-	    pl_tmp++;
-	  }
-
       } //switch(crate_nr)
       } //while(...)
       }
