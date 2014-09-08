@@ -1,5 +1,5 @@
-#ifndef _TXXXCONFIG_H_
-#define _TXXXCONFIG_H_
+#ifndef _CalifaCONFIG_H_
+#define _CalifaCONFIG_H_
 
 #define FEBEX_EVT_TYPE 10
 #define FEBEX_SUBEVT_TYPE 1
@@ -53,8 +53,13 @@
 //Time over Threshold on/off
 #define TOT 0
 
-
+#if ! FFT
 #define TRACE_SIZE 220         // in samples
+#else
+//for FFT, trace size has to be a power of two
+#define TRACE_SIZE 1<<12
+#endif
+
 #define SIS_TRACE_LEN 3000
 
 #define DEBUG 0

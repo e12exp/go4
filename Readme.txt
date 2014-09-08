@@ -20,7 +20,7 @@ The main program can be started from the Go4 GUI or by command line:
 ./MainUserAnalysis -e r3f-12 1000
 
 The events can be read from standard GSI lmd files or MBS or event servers.
-For each event the user event processor TXXXProc is called.
+For each event the user event processor CalifaProc is called.
 This user event processor fills some histograms from the input MBS event.
 
 All classes are defined and declared in two files (*.h and *.cxx)
@@ -29,21 +29,21 @@ The input is specified in the macros
 file.C, trans.C, stream.C, evserv.C, revserv.C
 other setups are in setup.C.
 
-The processor:    TXXXProc
+The processor:    CalifaProc
 
 The standard factory created in MainUserAnalysis keeps all
 information about the step.
-The analysis code is in the event processor TXXXProc. Members are
+The analysis code is in the event processor CalifaProc. Members are
 histogram, condition, and parameter pointers used in the event method
-Event. In the constructor of TXXXProc the histograms, parameters and
+Event. In the constructor of CalifaProc the histograms, parameters and
 conditions are created. Function Event - called event by event - gets
 the output event pointer as argument (XXXEvent).
 The input event pointer is retrieved from the framework.
 In the first part, data from the raw input MBS event are copied to
-arrays of TXXXProc. Two subevents (crate 1,2) are processed.
+arrays of CalifaProc. Two subevents (crate 1,2) are processed.
 Then the histograms are filled, the 2d one with polygon conditions.
 
-A Parameter class TXXXParam
+A Parameter class CalifaParam
 In this class one can store parameters, and use them in all steps.
 Parameters can be modified from GUI.
 
@@ -51,7 +51,7 @@ Autosave file mechanism.
 By default autosave is enabled in batch mode, disabled in GUI mode,
 and all objects are saved into this ROOT file at the end. At startup
 the autosave file is read and all objects are restored from that file.
-When TXXXAnalysis is created, the autosave file is not yet loaded. Therefore the
+When CalifaAnalysis is created, the autosave file is not yet loaded. Therefore the
 objects created here are overwritten by the objects from autosave file (if any), except histograms.
 From GUI, objects are loaded from autosave file when Submit button is pressed.
 One can inspect the content of the auto save file with the Go4 GUI.
@@ -65,8 +65,8 @@ Add class in Go4UserAnalysisLinkDef.h
 Then make all.
 
 Adapt the example
-Most probably you will change TXXXParam to keep useful parameters.
-Definitely you will change TXXXProc to create your histograms, conditions,
+Most probably you will change CalifaParam to keep useful parameters.
+Definitely you will change CalifaProc to create your histograms, conditions,
 pictures, and finally write your analysis function BuildEvent.
 If you need to fill data in output event, please consider Go4Example1Step example.
 

@@ -13,12 +13,12 @@
 //This software can be used under the license agreements as stated
 //in Go4License.txt file which is part of the distribution.
 //----------------------------------------------------------------
-#include "TXXXParam.h"
+#include "CalifaParam.h"
 
 #include "Riostream.h"
 
 //***********************************************************
-TXXXParam::TXXXParam() : TGo4Parameter("Parameter")
+CalifaParam::CalifaParam() : TGo4Parameter("Parameter")
 {
   frP1=0;
   frP2=0;
@@ -50,7 +50,7 @@ for(Int_t x=0;x<__MEVX__;++x)
   }
 }
 //***********************************************************
-TXXXParam::TXXXParam(const char* name) : TGo4Parameter(name)
+CalifaParam::CalifaParam(const char* name) : TGo4Parameter(name)
 {
   fill=kTRUE;
   frP1=10;
@@ -83,13 +83,13 @@ for(Int_t x=0;x<__MEVX__;++x)
   }
 }
 //***********************************************************
-TXXXParam::~TXXXParam()
+CalifaParam::~CalifaParam()
 {
 }
 //***********************************************************
 
 //-----------------------------------------------------------
-Int_t TXXXParam::PrintParameter(Text_t * n, Int_t){
+Int_t CalifaParam::PrintParameter(Text_t * n, Int_t){
   return 0;
   cout << "Parameter " << GetName()<<":" <<endl;
   cout << " P1="<<frP1<<endl;
@@ -123,12 +123,12 @@ Int_t TXXXParam::PrintParameter(Text_t * n, Int_t){
   return 0;
 }
 //-----------------------------------------------------------
-Bool_t TXXXParam::UpdateFrom(TGo4Parameter *pp){
-  if(pp->InheritsFrom("TXXXParam"))
+Bool_t CalifaParam::UpdateFrom(TGo4Parameter *pp){
+  if(pp->InheritsFrom("CalifaParam"))
   {
-    TXXXParam * from;
-    from = (TXXXParam *) pp;
-    cout << "**** TXXXParam " << GetName() << " updated from auto save file" << endl;
+    CalifaParam * from;
+    from = (CalifaParam *) pp;
+    cout << "**** CalifaParam " << GetName() << " updated from auto save file" << endl;
     fill=from->fill;
     frP1=from->frP1;
     frP2=from->frP2;

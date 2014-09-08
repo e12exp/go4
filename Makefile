@@ -1,4 +1,7 @@
 #general make file for any Go4 module
+ifndef GO4SYS
+$(error GO4SYS is not set. Did you do a "source go4login new?")
+endif
 
 include $(GO4SYS)/Makefile.config
 
@@ -25,16 +28,16 @@ DOOPTIMIZATION = false
 
 all: build
 
-TXXXProc.o:	TXXXConfig.h
+CalifaProc.o:	CalifaConfig.h
 
-TXXXConfig.h:	TXXXConfig.h.sample
+CalifaConfig.h:	CalifaConfig.h.sample
 	@echo "Creating default configuration file"
 	@echo "------------------------"
-	@echo "  Backup of original configuration file is stored to TXXXConfig.h.back"
+	@echo "  Backup of original configuration file is stored to CalifaConfig.h.back"
 	@echo "------------------------"
-	@touch TXXXConfig.h
-	@cp TXXXConfig.h TXXXConfig.h.back
-	@cp TXXXConfig.h.sample TXXXConfig.h
+	@touch CalifaConfig.h
+	@cp CalifaConfig.h CalifaConfig.h.back
+	@cp CalifaConfig.h.sample CalifaConfig.h
 
 include Module.mk
 
@@ -45,6 +48,7 @@ clean-obj: clean-obj-$(MODULE_NAME)
 
 clean: clean-$(MODULE_NAME)
 	@echo "Clean everything in $(MODULE_NAME)"
+	rm -f *~
 
 ifdef DOMAP
 ifeq ($(wildcard $(GO4MAP)),)

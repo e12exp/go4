@@ -17,18 +17,18 @@
 #define TUNPACKPROCESSOR_H
 
 #include <TCutG.h>
-#include "TXXXConfig.h"
+#include "CalifaConfig.h"
 
 #include "TGo4EventProcessor.h"
 
-class TXXXParam;
+class CalifaParam;
 class TGo4Fitter;
 
-class TXXXProc : public TGo4EventProcessor {
+class CalifaProc : public TGo4EventProcessor {
    public:
-      TXXXProc() ;
-      TXXXProc(const char* name);
-      virtual ~TXXXProc() ;
+      CalifaProc() ;
+      CalifaProc(const char* name);
+      virtual ~CalifaProc() ;
 
       Bool_t BuildEvent(TGo4EventElement* target); // event processing function
 
@@ -74,7 +74,10 @@ class TXXXProc : public TGo4EventProcessor {
       void	  CplxFFT(double *ReX, double *ImX, unsigned int N);
 #endif
 
-   ClassDef(TXXXProc,1)
+      TH2*         coincidence;
+
+
+   ClassDef(CalifaProc,1)
 };
 #endif //TUNPACKPROCESSOR_H
 

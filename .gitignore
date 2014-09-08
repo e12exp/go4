@@ -9,5 +9,5 @@ MainUserAnalysis
 *.o
 *.so
 *.so.*
-TXXXConfig.h
-TXXXConfig.h.back
+CalifaConfig.h
+CalifaConfig.h.back

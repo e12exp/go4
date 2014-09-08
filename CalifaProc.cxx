@@ -15,7 +15,7 @@
 //This software can be used under the license agreements as stated
 //in Go4License.txt file which is part of the distribution.
 //----------------------------------------------------------------
-#include "TXXXProc.h"
+#include "CalifaProc.h"
 
 #include "Riostream.h"
 
@@ -30,7 +30,7 @@
 #include "TGo4PolyCond.h"
 #include "TGo4CondArray.h"
 #include "TGo4Picture.h"
-#include "TXXXParam.h"
+#include "CalifaParam.h"
 #include "TGo4Fitter.h"
 
 #include <cmath>
@@ -49,27 +49,47 @@
 #define DBG(msg)
 #endif
 
+#define RESET_BACKTRACE
+#ifdef RESET_BACKTRACE
+#include <signal.h>
+int disable_backtrace()
+{
+  signal(SIGSEGV, SIG_DFL);
+  return 0;
+}
+int no_backtrace=disable_backtrace();
+#endif
+
+
 static Int_t l_sfp_slaves[MAX_SFP] = NR_SLAVES;
 
 static Int_t id_time_zero[2] = TIME_ZERO;
 
 //***********************************************************
-TXXXProc::TXXXProc():TGo4EventProcessor("Proc")
+CalifaProc::CalifaProc():TGo4EventProcessor("Proc")
 {
-  cout << "**** TXXXProc: Create instance " << endl;
+  cout << "**** CalifaProc: Create instance " << endl;
+#ifdef RESET_BACKTRACE
+  disable_backtrace();
+#endif
+
 }
 
 //***********************************************************
-TXXXProc::~TXXXProc()
+CalifaProc::~CalifaProc()
 {
-  cout << "**** TXXXProc: Delete instance " << endl;
+  cout << "**** CalifaProc: Delete instance " << endl;
 }
 
 //***********************************************************
 // this one is used in standard factory
-TXXXProc::TXXXProc(const char *name):TGo4EventProcessor(name)
+CalifaProc::CalifaProc(const char *name):TGo4EventProcessor(name)
 {
-  cout << "**** TXXXProc: Create instance " << name << endl;
+  cout << "**** CalifaProc: Create instance " << name << endl;
+#ifdef RESET_BACKTRACE
+  disable_backtrace();
+#endif
+
 
   Int_t l_i, l_j, l_k;
 
@@ -109,13 +129,13 @@ TXXXProc::TXXXProc(const char *name):TGo4EventProcessor(name)
 	{
 	  h_dft_ampl[l_i][l_j][l_k] = new TH1D(Form("dft_amplitude_%d_%03d_%02d", l_i, l_j, l_k),
 	      Form("Amplitude %02d", l_k), TRACE_SIZE/2-1, 0, F_ADC/2);
-	  AddHistogram(h_dft_ampl[l_i][l_j][l_k], "Febex/SFP %d/Febex %03d/DFT", l_i, l_j);
+	  AddHistogram(h_dft_ampl[l_i][l_j][l_k], Form("Febex/SFP %d/Febex %03d/DFT", l_i, l_j));
 	}
 	for(l_k = 0; l_k < N_CHA; l_k++)
 	{
 	  h_dft_phase[l_i][l_j][l_k] = new TH1D(Form("dft_phase_%d_%03d_%02d", l_i, l_j, l_k),
 	      Form("Phase %02d", l_k), TRACE_SIZE/2-1, 0, F_ADC/2);
-	  AddHistogram(h_dft_phase[l_i][l_j][l_k], "Febex/SFP %d/Febex %03d/DFT", l_i, l_j);
+	  AddHistogram(h_dft_phase[l_i][l_j][l_k], Form("Febex/SFP %d/Febex %03d/DFT", l_i, l_j));
 	}
 #endif
 
@@ -175,11 +195,16 @@ TXXXProc::TXXXProc(const char *name):TGo4EventProcessor(name)
   TFile *f1 = new TFile("rpid-cut.root");
   rpid_cut = (TCutG*)f1->Get("CUTG");
 #endif
+
+       coincidence = MakeTH2('I', "coincidence", "coincidence",
+              1500,0,0xffff,500,0,20000);
+
+
 }
 
 //-----------------------------------------------------------
 // event function
-Bool_t TXXXProc::BuildEvent(TGo4EventElement * target)
+Bool_t CalifaProc::BuildEvent(TGo4EventElement * target)
 {                               
   // called by framework. We dont fill any outindent: Standard input:253: Warning:old style assignment ambiguity in "=*".  Assuming "= *" put event here at all
 
@@ -207,6 +232,10 @@ Bool_t TXXXProc::BuildEvent(TGo4EventElement * target)
 
   static UInt_t l_evt_ct = 0;
 
+              uint32_t energy1;
+              uint32_t energy2;
+
+
   TGo4MbsSubEvent *psubevt;
 
   fInput = (TGo4MbsEvent *) GetInputEvent();
@@ -215,7 +244,7 @@ Bool_t TXXXProc::BuildEvent(TGo4EventElement * target)
     return kFALSE;
   }
   if (fInput->GetTrigger() > 11) {
-    cout << "**** TXXXProc: Skip trigger event" << endl;
+    cout << "**** CalifaProc: Skip trigger event" << endl;
     return kFALSE;
   }
   // first we fill the arrays fCrate1,2 with data from MBS source
@@ -238,6 +267,8 @@ Bool_t TXXXProc::BuildEvent(TGo4EventElement * target)
 #if DIFF_TS
   int64_t timestamp[l_sfp_slaves[0]][N_CHA];
 #endif
+
+  memset(energy, 0, sizeof(uint32_t) * l_sfp_slaves[0] * N_CHA);
 
   while((psubevt = fInput->NextSubEvent()))
   {
@@ -408,6 +439,8 @@ Bool_t TXXXProc::BuildEvent(TGo4EventElement * target)
 		    }
 #endif
 
+		    
+
 		    //If data samples are available
 		    if (evnt->size > event_t_size) {
 		      data->size = *pl_tmp & 0xffff;
@@ -527,9 +560,11 @@ Bool_t TXXXProc::BuildEvent(TGo4EventElement * target)
 		    }
 		    
                   }
-
+		  coincidence->Fill(energy[0][1], energy[1][6]);
 		  for(l_j = 0; l_j < l_sfp_slaves[0]; l_j++)
 		  {
+
+		    
 		    for(int z = 0; z < N_CHA; z++)
 		    {
 		      h_evse[0][l_j][z]->Fill(energy[l_j][(z + 1) % N_CHA], energy[l_j][z]);
@@ -550,7 +585,7 @@ Bool_t TXXXProc::BuildEvent(TGo4EventElement * target)
 }
 
 #if FBX_FFT
-void TXXXProc::ReFFT(double *ReX, double *ImX, unsigned int N)
+void CalifaProc::ReFFT(double *ReX, double *ImX, unsigned int N)
 {
   unsigned int i, im, ip2, ipm, ip;
   double TR, TI;
@@ -616,7 +651,7 @@ void TXXXProc::ReFFT(double *ReX, double *ImX, unsigned int N)
   }
 }
 
-void TXXXProc::CplxFFT(double *ReX, double *ImX, unsigned int N)
+void CalifaProc::CplxFFT(double *ReX, double *ImX, unsigned int N)
 {
   double TR, TI;
 

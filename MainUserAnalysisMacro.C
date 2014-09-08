@@ -39,7 +39,7 @@ TGo4MbsFileParameter         * par = new TGo4MbsFileParameter(inputfile.Data());
   TGo4Analysis*      analysis = TGo4Analysis::Instance();
   TGo4StepFactory*   factory  = new TGo4StepFactory("Factory");
   TGo4AnalysisStep* step      = new TGo4AnalysisStep("Analysis",factory,0,0,0);
-  factory->DefEventProcessor("XXXProc","TXXXProc");// object name, class name
+  factory->DefEventProcessor("XXXProc","CalifaProc");// object name, class name
   factory->DefOutputEvent("XXXEvent","TGo4EventElement"); // object name, class name
   step->SetEventSource(par);// set input source
   step->SetSourceEnabled(kTRUE);

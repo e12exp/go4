@@ -19,8 +19,8 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class TXXXParam+;
-#pragma link C++ class TXXXProc+;
+#pragma link C++ class CalifaParam+;
+#pragma link C++ class CalifaProc+;
 
 #endif
 

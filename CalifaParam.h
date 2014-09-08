@@ -22,11 +22,11 @@
 
 #include "TGo4Parameter.h"
 
-class TXXXParam : public TGo4Parameter {
+class CalifaParam : public TGo4Parameter {
    public:
-      TXXXParam();
-      TXXXParam(const char* name);
-      virtual ~TXXXParam();
+      CalifaParam();
+      CalifaParam(const char* name);
+      virtual ~CalifaParam();
       virtual Int_t  PrintParameter(Text_t * n, Int_t);
       virtual Bool_t UpdateFrom(TGo4Parameter *);
 
@@ -52,7 +52,7 @@ class TXXXParam : public TGo4Parameter {
       UChar_t  fuChar;
       ULong_t  fuLong;
 
-   ClassDef(TXXXParam,1)
+   ClassDef(CalifaParam,1)
 };
 
 #endif //SPAR_H
