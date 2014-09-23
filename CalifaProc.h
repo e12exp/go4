@@ -1,84 +1,59 @@
-//-------------------------------------------------------------
-//        Go4 Release Package v3.03-05 (build 30305)
-//                      05-June-2008
-//---------------------------------------------------------------
-//   The GSI Online Offline Object Oriented (Go4) Project
-//   Experiment Data Processing at EE department, GSI
-//---------------------------------------------------------------
-//
-//Copyright (C) 2000- Gesellschaft f. Schwerionenforschung, GSI
-//                    Planckstr. 1, 64291 Darmstadt, Germany
-//Contact:            http://go4.gsi.de
-//----------------------------------------------------------------
-//This software can be used under the license agreements as stated
-//in Go4License.txt file which is part of the distribution.
-//----------------------------------------------------------------
-#ifndef TUNPACKPROCESSOR_H
-#define TUNPACKPROCESSOR_H
+#ifndef CalifaProc_H
+#define CalifaProc_H
 
-#include <TCutG.h>
 #include "CalifaConfig.h"
 
 #include "TGo4EventProcessor.h"
-
+#include <stdint.h>
+#include "struct_event.h"
+#include <list>
+#include <tuple>
+#include <map>
+#include "CalifaBaseProc.h"
+class CalifaSubprocessor;
 class CalifaParam;
 class TGo4Fitter;
+class TClass;
+class CalifaParser;
 
-class CalifaProc : public TGo4EventProcessor {
+//Note: as Go4 makes extensive use of ROOT stuff, it has to use use ROOT
+// to build class defintions. 
+// Sadly, ROOT tends to fail even on moderatly sophisticated things like 
+// tuples, so we can never let it see any serious C++.
+// As a workaround, there exists a fully ROOT-compatible (aka dumb) class named 
+// WrapperProc, and a C-compatible interface to CalifaProc named CalifaBaseProc.
+// Yes, this is ugly. 
+
+class CalifaProc
+{
    public:
-      CalifaProc() ;
-      CalifaProc(const char* name);
-      virtual ~CalifaProc() ;
+  //CalifaProc() ;
+  CalifaProc(const char* name, TGo4EventProcessor* go4ep);
+  virtual ~CalifaProc() ;
 
-      Bool_t BuildEvent(TGo4EventElement* target); // event processing function
+  Bool_t BuildEvent(TGo4EventElement* target); // event processing function
+  void RegisterSubprocessor(CalifaSubprocessor* sp);
+  static CalifaProc* GetProc()
+  {
+    return CalifaProc::gProc;
+  }
 
- private:
-      TGo4MbsEvent  *fInput;  //!
+  static const uint32_t FEBEX_PROC_ID=1;
+  static const uint32_t FEBEX_EVT_TYPE=10;
+  static const uint32_t FEBEX_SUBEVT_TYPE=1;
+ protected:
+  static CalifaProc* gProc;
+  void registerNewHistograms();
+  std::list<CalifaSubprocessor*> subprocessors;
+  std::list<CalifaSubprocessor*> newsubprocessors;
 
-      TH1          *h_trace[MAX_SFP][MAX_SLAVE][N_CHA];  //!
-      TH1          *h_energy_fpga [MAX_SFP][MAX_SLAVE][N_CHA];  //!
-      TH2          *h_rpid_fpga [MAX_SFP][MAX_SLAVE][N_CHA];  //!
-      TH2          *h_evse [MAX_SFP][MAX_SLAVE][N_CHA];  //!
-#if FBX_DFT || FBX_FFT
-      TH1	   *h_dft_ampl [MAX_SFP][MAX_SLAVE][N_CHA];
-      TH1	   *h_dft_phase [MAX_SFP][MAX_SLAVE][N_CHA];
-#endif
-
-#if FBX_HIST_ADC
-      TH1	    *h_hist_adc [MAX_SFP][MAX_SLAVE][N_CHA];
-      TH1	    *h_hist_adc_dev [MAX_SFP][MAX_SLAVE][N_CHA];
-      TH1	    *h_trace_adc_diff [MAX_SFP][MAX_SLAVE][N_CHA];
-      TH1	    *h_hist_adc_diff [MAX_SFP][MAX_SLAVE][N_CHA];
-      TH2	    *h_adc_diff_vs_adc [MAX_SFP][MAX_SLAVE][N_CHA];
-#endif
-
-#if DIFF_TS
-      TH1	    *h_diff_ts[MAX_SFP][MAX_SLAVE][N_CHA];
-#endif      
-
-      TH1          *h_time_stamp [MAX_SFP][MAX_SLAVE];  
-      TH1          *h_time_diff  [MAX_SFP][MAX_SLAVE];  
-
-      TH1          *h_hit_pattern;  
-      TH1          *h_num_hit;  
-      TH1          *h_data_size; 
-
-      int	    num_events; 
-
-#if RPID_CUTG
-      TCutG	  *rpid_cut;
-#endif
-
-#if FBX_FFT
-      void	  ReFFT(double *ReX, double *ImX, unsigned int N);
-      void	  CplxFFT(double *ReX, double *ImX, unsigned int N);
-#endif
-
-      TH2*         coincidence;
-
-
-   ClassDef(CalifaProc,1)
+  CalifaParser* parser;
+  TGo4EventProcessor* go4ep;
 };
+
+extern CalifaProc* gCalifaProc;
+
+
 #endif //TUNPACKPROCESSOR_H
 
 

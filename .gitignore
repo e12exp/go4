@@ -3,7 +3,7 @@
 .go4
 .localmap
 .rootmap
-G__Go4ExampleSimple.*
+G__.*
 MainUserAnalysis
 *.d
 *.o
@@ -11,3 +11,5 @@ MainUserAnalysis
 *.so.*
 CalifaConfig.h
 CalifaConfig.h.back
+*~
+.nfs*

@@ -13,18 +13,30 @@
 //This software can be used under the license agreements as stated
 //in Go4License.txt file which is part of the distribution.
 //----------------------------------------------------------------
-#ifdef __CINT__
-
-#pragma link off all globals;
-#pragma link off all classes;
-#pragma link off all functions;
-
-#pragma link C++ class CalifaParam+;
-#pragma link C++ class WrapperProc+;
-
-#endif
+#ifndef WRAPPERPROC_H
+#define WRAPPERPROC_H
+//see comments in CalifaProc.h
 
 
+#include "CalifaConfig.h"
+#include "CalifaBaseProc.h"
+#include "TGo4EventProcessor.h"
+class CalifaParam;
+class TGo4Fitter;
+class TClass;
+class WrapperProc : public TGo4EventProcessor {
+   public:
+      WrapperProc(const char* name);
+      virtual ~WrapperProc() ;
+
+      Bool_t BuildEvent(TGo4EventElement* target); // event processing function
+ protected:
+      void* proc;
+      ClassDef(WrapperProc,1)
+};
+
+
+#endif //TUNPACKPROCESSOR_H
 
 
 //----------------------------END OF GO4 SOURCE FILE ---------------------

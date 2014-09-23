@@ -169,8 +169,8 @@ else
 // tell the factory the names of processor and output event
 // both will be created by the framework later
 // Input event is by default an MBS event
-  factory->DefEventProcessor("XXXProc","CalifaProc");// object name, class name
-  factory->DefOutputEvent("XXXEvent","TGo4EventElement"); // object name, class name
+  factory->DefEventProcessor("WrapperProc","WrapperProc");// object name, class name
+  factory->DefOutputEvent("CalifaEvent","TGo4EventElement"); // object name, class name
 
 // use macros to set event input and setup
   gROOT->ProcessLine(source);

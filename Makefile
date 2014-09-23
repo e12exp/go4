@@ -28,7 +28,9 @@ DOOPTIMIZATION = false
 
 all: build
 
-CalifaProc.o:	CalifaConfig.h
+CalifaProc.o:	CalifaConfig.h CalifaProc.cxx
+
+
 
 CalifaConfig.h:	CalifaConfig.h.sample
 	@echo "Creating default configuration file"
@@ -40,6 +42,13 @@ CalifaConfig.h:	CalifaConfig.h.sample
 	@cp CalifaConfig.h.sample CalifaConfig.h
 
 include Module.mk
+
+test:
+	@echo $(MODULE_NAME)
+
+CXXFLAGS:=$(CXXFLAGS) -std=c++0x -g -I $(PWD)
+
+#CXX=/home/pklenze/software/gcc-4.9.1/bin/g++
 
 build: all-$(MODULE_NAME)
 
