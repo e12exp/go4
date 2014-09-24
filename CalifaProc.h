@@ -41,6 +41,7 @@ class CalifaProc
   static const uint32_t FEBEX_PROC_ID=1;
   static const uint32_t FEBEX_EVT_TYPE=10;
   static const uint32_t FEBEX_SUBEVT_TYPE=1;
+  void registerObject(TObject* o);
  protected:
   static CalifaProc* gProc;
   void registerNewHistograms();

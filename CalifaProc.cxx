@@ -32,6 +32,7 @@
 #include "struct_gosip.h"
 
 #include "debug.h"
+#include <string.h>
 
 #include "OnDemandSubprocessor.h"
 #include "SingleHistSubprocessor.h"
@@ -61,6 +62,34 @@ void CalifaProc::RegisterSubprocessor(CalifaSubprocessor* sp)
 }
 
 
+void CalifaProc::registerObject(TObject* o)
+{
+  
+  linfo("registering a new TObject of type %s\n", o->ClassName());
+  if (auto h=dynamic_cast<TH1*>(o))
+    {
+      char* dir=NULL;
+      const char* name=h->GetName();
+      if (const char* x=strrchr(name, (int)'/'))
+	{
+	  int idx=(int)(x-name);
+	  char buf[1000];
+	  strncpy(buf, h->GetName(), 1000);
+	  buf[idx]=0;
+	  dir=buf;
+	  h->SetName(buf+idx+1);
+	  lerror("%s:%s\n", buf, buf+idx+1);
+	}
+      this->go4ep->AddHistogram(h, dir);
+    }
+  else if (auto c=dynamic_cast<TCanvas*>(o))
+    this->go4ep->AddCanvas(c);
+  else if (auto n=dynamic_cast<TNamed*>(o))
+    this->go4ep->AddObject(n);
+  else
+    lerror( "Can not add Object of type %s to CalifaProc, ignored.\n", o->ClassName() );
+}
+
 void CalifaProc::registerNewHistograms()
 {
   while (!this->newsubprocessors.empty())
@@ -69,16 +98,7 @@ void CalifaProc::registerNewHistograms()
       this->newsubprocessors.pop_front();
       std::list<TObject*> l=sp->makeHists();
       for (auto it=l.begin(); it!=l.end(); ++it)
-	{
-	  if (auto h=dynamic_cast<TH1*>(*it))
-	    this->go4ep->AddHistogram(h);
-	  else if (auto c=dynamic_cast<TCanvas*>(*it))
-	    this->go4ep->AddCanvas(c);
-	  else if (auto n=dynamic_cast<TNamed*>(*it))
-	    this->go4ep->AddObject(n);
-	  else
-	    lerror( "Can not add Object of type %s to CalifaProc, ignored.\n", (*it)->ClassName() );
-	}
+	this->registerObject(*it);
       this->subprocessors.push_back(sp);
     }
 }
@@ -99,7 +119,7 @@ CalifaProc::CalifaProc(const char *name, TGo4EventProcessor* go4ep)
   CalifaProc::gProc=this;
   this->parser=new CalifaParser();
   this->go4ep=go4ep;
-  new OnDemandSubprocessor();
+  (new OnDemandSubprocessor())->registerSP();
 }
 
 // event function
@@ -124,7 +144,7 @@ Bool_t CalifaProc::BuildEvent(TGo4EventElement * target)
 
    
       if(evt_type != FEBEX_EVT_TYPE || subevt_type != FEBEX_SUBEVT_TYPE || procid != FEBEX_PROC_ID)
-	continue; //all fair events, febex or otherwise have the same ID set, if it is something else, ignore it. 
+	continue; //all FAIR/R3B events, febex or otherwise have the same ID set, if it is something else, ignore it. 
       int r=this->parser->parse((uint32_t*)psubevt->GetDataField(), psubevt->GetIntLen());
 
       if (r)
@@ -142,7 +162,7 @@ Bool_t CalifaProc::BuildEvent(TGo4EventElement * target)
 		  std::get<1>(ei->first), 
 		  std::get<2>(ei->first)
 		  );*/
-	  linfo("calling processEvent for %d processors\n", this->subprocessors.size());
+	  ldbg("calling processEvent for %d processors\n", this->subprocessors.size());
 	  for (auto sp=this->subprocessors.begin(); sp!=this->subprocessors.end(); ++sp)
 	    (*sp)->processEvent(this->parser);
 	}

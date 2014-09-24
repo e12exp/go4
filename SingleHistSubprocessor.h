@@ -2,25 +2,27 @@
 #define _SingleHistSubprocessor_H
 
 #include "CalifaSubprocessor.h"
-#include <functional>
 #include "TH1.h"
+//a subprocessor which registers a single histogram
+// you will have to overload this class to fill it. 
 class SingleHistSubprocessor: public CalifaSubprocessor
 {
  public:
-  typedef std::function<double(CalifaParser*)> update_t;
-  typedef std::function<int(CalifaParser*)> filter_t;
+  typedef CalifaParser::module_index_t module_index_t;
   SingleHistSubprocessor(std::string name,
-			 update_t f,
 			 int nbins,
 			 int upperLimit, 
-			 int lowerLimit=0,
-			 filter_t filter=[](CalifaParser* p){return 1; }
+			 int lowerLimit=0
 			 );
-  virtual std::list<TObject*> makeHists();
-  virtual void processEvent(CalifaParser* p);
+  //overload to fill histogram
+  virtual void processEvent(CalifaParser* p)
+  {
+  };
+  virtual TH1* getHist()
+  {
+    return this->h;
+  }
  protected:
   TH1* h;
-  update_t f;
-  filter_t filter;
 };
 #endif

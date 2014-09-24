@@ -13,4 +13,6 @@ int logmsg(int type,  std::string format, ...);
 #define ldbg(...)   logmsg(3, __VA_ARGS__)
 //ain't C beautiful?
 
+void dumpMem(void* p, size_t len);
+
 #endif

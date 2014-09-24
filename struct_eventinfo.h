@@ -8,7 +8,7 @@ typedef struct eventinfo
   event_t *evnt;
   trace_head_t *trace;
   //to be continued
-
+  uint32_t tracepoints;
 } eventinfo_t;
 
 

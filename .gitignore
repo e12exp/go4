@@ -3,7 +3,7 @@
 .go4
 .localmap
 .rootmap
-G__.*
+G__*
 MainUserAnalysis
 *.d
 *.o

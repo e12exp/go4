@@ -58,7 +58,7 @@ int CalifaParser::parse(uint32_t* p, uint32_t len)
       p=next;
     }
   this->subevent_count++;
-  linfo("parsing of subeven %d completed successfully with %d good and %d / %d  bad gosip/event headers!\n",
+  ldbg("parsing of subeven %d completed successfully with %d good and %d / %d  bad gosip/event headers!\n",
 	this->subevent_count, goodheaders, badgosipheaders, badeventheaders);
   return goodheaders==0;
 }
@@ -201,7 +201,7 @@ int CalifaParser::parseEvent(uint32_t *&pl_tmp,
       evnt->tot = 0;
       memset(evnt->tot_samples, 0, sizeof(int16_t)*4);
       processed_size = event_t_size;
-      return 0;
+      break;
       // New event structure
     case 0x115A:
       evnt->size = *pl_tmp & 0xffff;
@@ -220,7 +220,7 @@ int CalifaParser::parseEvent(uint32_t *&pl_tmp,
       evnt->tot = 0;
       memset(evnt->tot_samples, 0, sizeof(int16_t)*4);
       processed_size = event_115a_t_size;
-      return 0;
+      break;
     default:
       lerror(" event: Invalid event magic number: 0x%04x\n", evnt->magic);
       free(ei->evnt);
@@ -230,6 +230,7 @@ int CalifaParser::parseEvent(uint32_t *&pl_tmp,
 
   if(evnt->size > processed_size && (*pl_tmp >> 16) == 0xBEEF)
     {
+      lerror("found TOT data");
       //time over threshold
       evnt->tot = *pl_tmp++ & 0xffff;
       memcpy(evnt->tot_samples, pl_tmp, 8); 
@@ -240,12 +241,30 @@ int CalifaParser::parseEvent(uint32_t *&pl_tmp,
   if (evnt->size > processed_size) 
     {
       //traces
-      trace_head_t * data=(trace_head_t * )&(pl_tmp);
+      trace_head_t * data=(trace_head_t * )(pl_tmp);
+
       if (data->magic_2bad != 0x2bad) 
-	  lerror("ERROR>> wrong data header ident: 0x%x "
-		 "instead of 0x2bad\n", data->magic_2bad);
+	{
+	  lerror("ERROR>> wrong data header ident at %p: 0x%x "
+		 "instead of 0x2bad\n", 
+		 &(data->magic_2bad),
+		 data->magic_2bad);
+	  //lerror("data=%p\n", data);
+	  //lerror("pl_tmp=%p\n", pl_tmp);
+	  //dumpMem(pl_tmp-4, evnt->size-processed_size);
+	}
       else
+	{
 	  ei->trace=data;
+	  //don't ask me why we need -2 here, but the last points
+	  // are often bad. 
+	  ei->tracepoints=data->size/2-sizeof(trace_head_t)-2;
+	}
     }
+  else
+    {
+      lerror("No traces found!\n");
+    }
+  return 0;
 }
 

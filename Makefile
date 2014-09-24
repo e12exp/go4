@@ -46,10 +46,12 @@ include Module.mk
 test:
 	@echo $(MODULE_NAME)
 
-CXXFLAGS:=$(CXXFLAGS) -std=c++0x -g -I $(PWD)
-
-#CXX=/home/pklenze/software/gcc-4.9.1/bin/g++
-
+#GCCDIR=/home/pklenze/software/gcc-4.9.1/
+GCCDIR=/usr
+CXXFLAGS:=$(CXXFLAGS) -std=c++0x -g -I $(PWD) -Wall
+LDFLAGS:=$(LDFLAGS) -L $(GCCDIR)/lib64
+CXX=$(GCCDIR)/bin/g++
+LD_LIBRARY_PATH:=$(LD_LIBRARY_PATH):$(GCCDIR)/lib
 build: all-$(MODULE_NAME)
 
 clean-obj: clean-obj-$(MODULE_NAME)
