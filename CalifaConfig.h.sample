@@ -1,16 +1,8 @@
 #ifndef _CalifaCONFIG_H_
 #define _CalifaCONFIG_H_
 
-#define FEBEX_EVT_TYPE 10
-#define FEBEX_SUBEVT_TYPE 1
+#define LOGLEVEL 1
 
-#define MAX_SFP	      4
-#define MAX_SLAVE     1
-#define N_CHA	      16
-
-// nr of slaves on SFP 0  1  2  3
-//                     |  |  |  |
-#define NR_SLAVES     {MAX_SLAVE, 0, 0, 0} 
 
 #define TIME_ZERO {0,0} //{port id, slave id}
 
