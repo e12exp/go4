@@ -20,10 +20,12 @@ class CalifaSubprocessor
       return empty;
     }
   //virtual const char* getPath()=0;
+  //empty means any
+  //virtual std::list<CalifaParser::module_index_t> getSensitivityList();
+
  protected:
   //alternativly, call this to register a processor
   virtual void registerObject(TObject * obj);
-
 };
 
 #endif

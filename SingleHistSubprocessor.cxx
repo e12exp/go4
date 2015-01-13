@@ -2,8 +2,8 @@
 #include "debug.h"
 SingleHistSubprocessor::SingleHistSubprocessor(std::string name,
 					       int nbins,
-					       int upperLimit, 
-					       int lowerLimit
+					       double upperLimit, 
+					       double lowerLimit
 					       )
 {
   //  linfo("creating TH1I(%s, %s, %d, %d, %d)")

@@ -11,8 +11,8 @@ class SingleHistSubprocessor: public CalifaSubprocessor
   typedef CalifaParser::module_index_t module_index_t;
   SingleHistSubprocessor(std::string name,
 			 int nbins,
-			 int upperLimit, 
-			 int lowerLimit=0
+			 double upperLimit, 
+			 double lowerLimit=0.0
 			 );
   //overload to fill histogram
   virtual void processEvent(CalifaParser* p)

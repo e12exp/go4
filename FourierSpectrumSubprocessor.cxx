@@ -1,39 +1,51 @@
 #include "FourierSpectrumSubprocessor.h"
 #include <math.h>
+#include <iostream>
 FourierSpectrumSubprocessor::FourierSpectrumSubprocessor(std::string name,
 							 std::string phasename,
 						 module_index_t idx,
 						 int nbins,
-						 int upperLimit, 
-						 int lowerLimit)
-  : SingleChannelSubprocessor(name, idx, nbins, upperLimit, lowerLimit)
+						 double upperLimit, 
+						 double lowerLimit)
+  : SingleChannelSubprocessor(name, idx, 
+			      FourierSpectrumSubprocessor::getMSB((unsigned int)nbins)/2,
+			      upperLimit, lowerLimit)
 {  
   this->phase_h=new TH1D(phasename.c_str(),
 			 phasename.c_str(),
-			 nbins, lowerLimit, upperLimit);
+			 FourierSpectrumSubprocessor::getMSB((unsigned int)nbins)/2,
+			 lowerLimit, upperLimit);
   this->registerObject(this->phase_h);
 }
+
+uint32_t FourierSpectrumSubprocessor::getMSB(uint32_t i)
+{
+  //calculate the highest power of 2 smaller than ei.tracepoints
+  //int n=1<<((int)floor(log2(n)));
+  uint32_t n=1;
+  while (n<<1 < i)
+    n<<=1;
+  return n;
+}
+
 
 void FourierSpectrumSubprocessor::processSubevent(eventinfo_t ei)
 {
   if (ei.trace)
     {
-      //calculate the highest power of 2 smaller than ei.tracepoints
-      //int n=1<<((int)floor(log2(n)));
-      uint32_t n=1;
-      while (n<<1 < ei.tracepoints)
-	n<<=1;
-
+      uint32_t n=FourierSpectrumSubprocessor::getMSB(ei.tracepoints);
       double *reX=(double*)malloc(sizeof(double)*n);
       double *imX=(double*)malloc(sizeof(double)*n);
       for (uint32_t i=0; i<n; i++)
 	reX[i]=(double)(ei.trace->points[i+1]);
       this->reFFT(reX, imX, n);
-      for (uint32_t i=0; i<n; i++)
+      for (uint32_t i=0; i<n/2; i++)
 	{
-	  this->h->AddBinContent(i+1, sqrt(reX[i]*reX[i]+imX[i]*imX[i]));
-	  this->phase_h->AddBinContent(i+1, atan2(imX[i], reX[i]));
+	  this->h->Fill(i*F_ADC/(1.0*n), sqrt(reX[i]*reX[i]+imX[i]*imX[i]));
+	  //std::cout << i << ":" << i*F_ADC/(2.0*n) << " " << sqrt(reX[i]*reX[i]+imX[i]*imX[i]) << std::endl;
+	  this->phase_h->Fill(i*F_ADC/(1.0*n), atan2(imX[i], reX[i]));
 	}
+      this->h->SetBinContent(1, 0.0);
       free(reX);
       free(imX);
     }

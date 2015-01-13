@@ -24,10 +24,10 @@ typedef struct event
 	uint16_t num_pileup;
 	uint16_t num_discarded;
 //---- energy -----------	
-	uint16_t energy;
+	int16_t energy;
 //----- QPID ------------
-	uint16_t n_f;
-	uint16_t n_s;
+	int16_t n_f;
+	int16_t n_s;
 //----- Time Over Threshold ----
 	uint16_t tot;
 	int16_t tot_samples[4];
@@ -41,7 +41,7 @@ typedef struct trace_head
   uint16_t size _PACKED;
   uint16_t magic_2bad _PACKED;
   uint16_t type _PACKED;
-  uint16_t points[0] _PACKED;
+  int16_t points[0] _PACKED;
 }
 trace_head_t;
 } //extern "C"

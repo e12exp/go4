@@ -8,9 +8,10 @@ class FourierSpectrumSubprocessor : public SingleChannelSubprocessor
 			      std::string phasename,
 		     module_index_t idx,
 		     int nbins,
-		     int upperLimit, 
-		     int lowerLimit=0);
+		     double upperLimit, 
+		     double lowerLimit=0);
   virtual void processSubevent(eventinfo_t ei);
+  static uint32_t getMSB(uint32_t i);
  protected:
   TH1* phase_h;
   virtual void reFFT(double* reX, double* imX, unsigned int N);

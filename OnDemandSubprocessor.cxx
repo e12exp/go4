@@ -1,8 +1,10 @@
 #include "OnDemandSubprocessor.h"
 #include "EnergySubprocessor.h"
+#include "CalEnergySubprocessor.h"
 #include "SingleTraceSubprocessor.h"
 #include "FourierSpectrumSubprocessor.h"
 #include "CalifaConfig.h"
+#include "BaselineHistSubprocessor.h"
 
 OnDemandSubprocessor::OnDemandSubprocessor(): energy_subprocessors(), trace_subprocessors()
 {
@@ -26,11 +28,23 @@ void OnDemandSubprocessor::processEvent(CalifaParser* p)
 		   std::get<0>(idx), std::get<1>(idx),
 		   std::get<2>(idx));
 	  this->energy_subprocessors[idx]=
-	    new EnergySubprocessor(buf, idx, 100000, 100000);
+	    new EnergySubprocessor(buf, idx, 65536, 32767, -32768);
 	  ldbg("created a new energy processor with name %s.\n", buf);
+
+	  snprintf(buf, 1000, 
+		   "c_energy/sfp_%01d/febex_%02d/c_en_%01d_%02d_%02d", 
+		   std::get<0>(idx), std::get<1>(idx),
+		   std::get<0>(idx), std::get<1>(idx),
+		   std::get<2>(idx));
+	  this->energy_subprocessors[idx]=
+	    new CalEnergySubprocessor(buf, idx, 65536, 32767, -32768);
+	  ldbg("created a calibrated new energy processor with name %s.\n",
+	       buf);
 	}
       if (ei.trace && ! this->trace_subprocessors.count(idx))
 	{
+	  //we have traces, create trace subprocessors
+	  //
 	  //single traces
 	  {
 	    snprintf(buf, 1000, 
@@ -49,6 +63,16 @@ void OnDemandSubprocessor::processEvent(CalifaParser* p)
 	    tp->getHist()->SetTitle(buf);
 	    this->trace_subprocessors[idx]=tp;
 	  }
+	  // baseline hist processor
+	  {
+	    snprintf(buf, 1000, 
+		     "traces/baseline/sfp_%01d/febex_%02d/bl_%01d_%02d_%02d",
+		     std::get<0>(idx), std::get<1>(idx), 
+		     std::get<0>(idx), std::get<1>(idx), 
+		     std::get<2>(idx));
+	    BaselineHistSubprocessor* bhp=new BaselineHistSubprocessor(buf, idx);
+	  }
+	  //FFT
 	  {
 	    snprintf(buf, 500, 
 		     "traces/fft_amp/sfp_%01d/febex_%02d/fft_amp_%01d_%02d_%02d",

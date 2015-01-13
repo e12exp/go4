@@ -9,8 +9,8 @@ class SingleChannelSubprocessor: public SingleHistSubprocessor
   SingleChannelSubprocessor(std::string name,
 			    module_index_t idx,
 			    int nbins,
-			    int upperLimit, 
-			    int lowerLimit
+			    double upperLimit, 
+			    double lowerLimit
 			 );
   virtual void processEvent(CalifaParser* p);
   virtual void processSubevent(eventinfo_t ei)=0;

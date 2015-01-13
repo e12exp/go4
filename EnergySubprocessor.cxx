@@ -4,8 +4,8 @@
 EnergySubprocessor::EnergySubprocessor(std::string name,
 				       module_index_t idx,
 				       int nbins,
-				       int upperLimit, 
-				       int lowerLimit)
+				       double upperLimit, 
+				       double lowerLimit)
   : SingleChannelSubprocessor(name, idx, nbins, upperLimit, lowerLimit)
 {
   //nothing to see here, move along. 

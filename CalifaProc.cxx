@@ -125,6 +125,7 @@ CalifaProc::CalifaProc(const char *name, TGo4EventProcessor* go4ep)
 // event function
 Bool_t CalifaProc::BuildEvent(TGo4EventElement * target)
 {
+  //  ldbg("**** CalifaProc: new event\n");
   this->registerNewHistograms();
   auto fInput = dynamic_cast<TGo4MbsEvent *>(this->go4ep->GetInputEvent());
   if (fInput == 0) {
@@ -144,11 +145,15 @@ Bool_t CalifaProc::BuildEvent(TGo4EventElement * target)
 
    
       if(evt_type != FEBEX_EVT_TYPE || subevt_type != FEBEX_SUBEVT_TYPE || procid != FEBEX_PROC_ID)
-	continue; //all FAIR/R3B events, febex or otherwise have the same ID set, if it is something else, ignore it. 
+	{
+	  linfo("ignored event with evt_type=0x%x, subevent_type=0x%x, procid=0x%x\n", evt_type, subevt_type, procid);
+	  continue; 
+	}
       int r=this->parser->parse((uint32_t*)psubevt->GetDataField(), psubevt->GetIntLen());
 
       if (r)
 	{
+	  linfo("     CalifaProc: bad subevent, ignoring rest of curent event.\n");
 	  //a bad subevent
 	  return kFALSE;
 	}

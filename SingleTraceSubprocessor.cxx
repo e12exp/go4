@@ -3,8 +3,8 @@
 SingleTraceSubprocessor::SingleTraceSubprocessor(std::string name,
 						 module_index_t idx,
 						 int nbins,
-						 int upperLimit, 
-						 int lowerLimit)
+						 double upperLimit, 
+						 double lowerLimit)
   : SingleChannelSubprocessor(name, idx, nbins, upperLimit, lowerLimit)
 {
 }
@@ -18,5 +18,8 @@ void SingleTraceSubprocessor::processSubevent(eventinfo_t ei)
 	{
 	  this->h->SetBinContent(i, (double)(ei.trace->points[i]));
 	}
+      char buf[100];
+      snprintf(buf, 100, "%s en=%d", h->GetName(), ei.evnt->energy);
+      this->h->SetTitle(buf);
     }
 }

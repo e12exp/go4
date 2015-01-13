@@ -3,8 +3,8 @@
 SingleChannelSubprocessor::SingleChannelSubprocessor(std::string name,
 						     module_index_t idx,
 						     int nbins,
-						     int upperLimit, 
-						     int lowerLimit
+						     double upperLimit, 
+						     double lowerLimit
 						     )
   : SingleHistSubprocessor(name, nbins, upperLimit, lowerLimit)
 {

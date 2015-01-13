@@ -38,9 +38,15 @@ class CalifaProc
     return CalifaProc::gProc;
   }
 
-  static const uint32_t FEBEX_PROC_ID=1;
+  /*  static const uint32_t FEBEX_PROC_ID=1;
   static const uint32_t FEBEX_EVT_TYPE=10;
   static const uint32_t FEBEX_SUBEVT_TYPE=1;
+  */
+
+  static const uint32_t FEBEX_PROC_ID=0x2;
+  static const uint32_t FEBEX_EVT_TYPE=0x64;
+  static const uint32_t FEBEX_SUBEVT_TYPE=0x2710;
+
   void registerObject(TObject* o);
  protected:
   static CalifaProc* gProc;

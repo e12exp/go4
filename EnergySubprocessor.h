@@ -7,8 +7,8 @@ class EnergySubprocessor : public SingleChannelSubprocessor
   EnergySubprocessor(std::string name,
 		     module_index_t idx,
 		     int nbins,
-		     int upperLimit, 
-		     int lowerLimit=0);
+		     double upperLimit, 
+		     double lowerLimit=0);
   virtual void processSubevent(eventinfo_t ei);
 };
 #endif

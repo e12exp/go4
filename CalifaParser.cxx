@@ -263,7 +263,7 @@ int CalifaParser::parseEvent(uint32_t *&pl_tmp,
     }
   else
     {
-      lerror("No traces found!\n");
+      //lerror("No traces found!\n");
     }
   return 0;
 }
