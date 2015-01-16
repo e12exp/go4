@@ -13,3 +13,7 @@ CalifaConfig.h
 CalifaConfig.h.back
 *~
 .nfs*
+*.pdf
+*.lmd
+en_cal.txt
+foo

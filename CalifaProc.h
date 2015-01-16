@@ -43,9 +43,6 @@ class CalifaProc
   static const uint32_t FEBEX_SUBEVT_TYPE=1;
   */
 
-  static const uint32_t FEBEX_PROC_ID=0x2;
-  static const uint32_t FEBEX_EVT_TYPE=0x64;
-  static const uint32_t FEBEX_SUBEVT_TYPE=0x2710;
 
   void registerObject(TObject* o);
  protected:

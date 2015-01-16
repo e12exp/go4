@@ -16,13 +16,65 @@ CalifaParser::CalifaParser(): eventmap(), tsmap(), subevent_count(0)
 void CalifaParser::reset()
 {
   for (auto it=this->eventmap.begin(); it!=this->eventmap.end(); ++it)
-    {
       if (it->second.evnt)
 	free(it->second.evnt);
-    }
   this->eventmap.clear();
-
 }
+
+int CalifaParser::parseGo4(TGo4MbsEvent* fInput)
+{
+  if (fInput == 0) {
+    linfo("AnlProc: no input event !\n");
+    return 1;
+  }
+  if (fInput->GetTrigger() > 11) {
+    linfo("**** CalifaProc: Skip trigger event\n" );
+    return 2;
+  }
+
+  fInput->ResetIterator();
+  this->reset();
+
+  while(auto psubevt = fInput->NextSubEvent())
+    {
+      uint32_t evt_type = psubevt->GetType();
+      uint32_t subevt_type = psubevt->GetSubtype();
+      uint32_t procid = psubevt->GetProcid();
+
+#if CHECK_EVT_TYPE   
+      if(evt_type != FEBEX_EVT_TYPE || subevt_type != FEBEX_SUBEVT_TYPE || procid != FEBEX_PROC_ID)
+	{
+	  linfo("ignored event with evt_type=0x%x, subevent_type=0x%x, procid=0x%x\n", evt_type, subevt_type, procid);
+	  continue; 
+	}
+#endif
+      int r=this->parse((uint32_t*)psubevt->GetDataField(), psubevt->GetIntLen());
+
+      if (r)
+	{
+	  linfo("     CalifaProc: bad subevent, ignoring rest of curent event.\n");
+	  //a bad subevent
+	  return 3;
+	}
+      else
+	{
+	  //nothing. events are automatically added to the eventlist. 
+
+	  /*
+	  auto e=this->parser->getCalifaEvents();
+	  for (auto ei=e->begin(); ei!=e->end(); ++ei)
+	    linfo("found index: %d %d %d\n", 
+		  std::get<0>(ei->first), 
+		  std::get<1>(ei->first), 
+		  std::get<2>(ei->first)
+		  );*/
+	  //ldbg("calling processEvent for %d processors\n", this->subprocessors.size());
+	}
+    }
+  return 0;
+}
+
+
 
 //len in words of 4 bytes
 int CalifaParser::parse(uint32_t* p, uint32_t len)
@@ -165,7 +217,6 @@ int CalifaParser::parseGosip(uint32_t *&p,
       lerror("gosip: multiple subheaders for the same channel, ignoring all but the first.\n");
       return 1;
     }
-  this->eventmap.count(idx);
   ei=&(this->eventmap[idx]);
   ei->gosip=gosip_sub;
   ei->evnt=NULL;

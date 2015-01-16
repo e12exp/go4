@@ -4,7 +4,7 @@
 class SingleTraceSubprocessor : public SingleChannelSubprocessor
 {
  public:
-  SingleTraceSubprocessor(std::string name,
+  SingleTraceSubprocessor(char* name,
 		     module_index_t idx,
 		     int nbins,
 		     double upperLimit, 

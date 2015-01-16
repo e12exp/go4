@@ -41,10 +41,22 @@ typedef struct trace_head
   uint16_t size _PACKED;
   uint16_t magic_2bad _PACKED;
   uint16_t type _PACKED;
-  int16_t points[0] _PACKED;
+  union {
+    int16_t s[0];
+    uint16_t u[0];
+  } points _PACKED;
+
 }
 trace_head_t;
 } //extern "C"
+
+inline double getTracePoint(struct trace_head* h, int n)
+{
+  if (h->type==3 || h->type==4)
+    return h->points.s[n];
+  else
+    return h->points.u[n];
+}; 
 
 #if 0
 static_assert(sizeof(trace_head_t)==6, "trace_head_t alignment bad");

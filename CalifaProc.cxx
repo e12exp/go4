@@ -18,6 +18,7 @@
 #include "CalifaProc.h"
 #include "CalifaSubprocessor.h"
 #include <list>
+#include <map>
 #include "Riostream.h"
 
 #include "TH1.h"
@@ -125,53 +126,16 @@ CalifaProc::CalifaProc(const char *name, TGo4EventProcessor* go4ep)
 // event function
 Bool_t CalifaProc::BuildEvent(TGo4EventElement * target)
 {
-  //  ldbg("**** CalifaProc: new event\n");
+  ldbg("**** CalifaProc: new event\n");
   this->registerNewHistograms();
   auto fInput = dynamic_cast<TGo4MbsEvent *>(this->go4ep->GetInputEvent());
-  if (fInput == 0) {
-    linfo("AnlProc: no input event !\n");
-    return kFALSE;
-  }
-  if (fInput->GetTrigger() > 11) {
-    linfo("**** CalifaProc: Skip trigger event\n" );
-    return kFALSE;
-  }
-  fInput->ResetIterator();
-  while(auto psubevt = fInput->NextSubEvent())
-    {
-      uint32_t evt_type = psubevt->GetType();
-      uint32_t subevt_type = psubevt->GetSubtype();
-      uint32_t procid = psubevt->GetProcid();
 
-   
-      if(evt_type != FEBEX_EVT_TYPE || subevt_type != FEBEX_SUBEVT_TYPE || procid != FEBEX_PROC_ID)
-	{
-	  linfo("ignored event with evt_type=0x%x, subevent_type=0x%x, procid=0x%x\n", evt_type, subevt_type, procid);
-	  continue; 
-	}
-      int r=this->parser->parse((uint32_t*)psubevt->GetDataField(), psubevt->GetIntLen());
+  if (this->parser->parseGo4(fInput))
+    return kFALSE;
 
-      if (r)
-	{
-	  linfo("     CalifaProc: bad subevent, ignoring rest of curent event.\n");
-	  //a bad subevent
-	  return kFALSE;
-	}
-      else
-	{
-	  /*
-	  auto e=this->parser->getCalifaEvents();
-	  for (auto ei=e->begin(); ei!=e->end(); ++ei)
-	    linfo("found index: %d %d %d\n", 
-		  std::get<0>(ei->first), 
-		  std::get<1>(ei->first), 
-		  std::get<2>(ei->first)
-		  );*/
-	  ldbg("calling processEvent for %d processors\n", this->subprocessors.size());
-	  for (auto sp=this->subprocessors.begin(); sp!=this->subprocessors.end(); ++sp)
-	    (*sp)->processEvent(this->parser);
-	}
-    }
+  for (auto sp=this->subprocessors.begin(); sp!=this->subprocessors.end(); ++sp)
+    (*sp)->processEvent(this->parser);
+  
   return kTRUE;
 }
 

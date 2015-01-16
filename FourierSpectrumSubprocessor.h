@@ -4,8 +4,8 @@
 class FourierSpectrumSubprocessor : public SingleChannelSubprocessor
 {
  public:
-  FourierSpectrumSubprocessor(std::string name,
-			      std::string phasename,
+  FourierSpectrumSubprocessor(char* name,
+			      char* phasename,
 		     module_index_t idx,
 		     int nbins,
 		     double upperLimit, 

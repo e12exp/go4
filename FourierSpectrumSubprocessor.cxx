@@ -1,8 +1,9 @@
 #include "FourierSpectrumSubprocessor.h"
+#include "HistFillerSubprocessor.h"
 #include <math.h>
 #include <iostream>
-FourierSpectrumSubprocessor::FourierSpectrumSubprocessor(std::string name,
-							 std::string phasename,
+FourierSpectrumSubprocessor::FourierSpectrumSubprocessor(char* name,
+							 char* phasename,
 						 module_index_t idx,
 						 int nbins,
 						 double upperLimit, 
@@ -11,8 +12,8 @@ FourierSpectrumSubprocessor::FourierSpectrumSubprocessor(std::string name,
 			      FourierSpectrumSubprocessor::getMSB((unsigned int)nbins)/2,
 			      upperLimit, lowerLimit)
 {  
-  this->phase_h=new TH1D(phasename.c_str(),
-			 phasename.c_str(),
+  this->phase_h=new TH1D(makeHistName(phasename, &idx),
+			 phasename,
 			 FourierSpectrumSubprocessor::getMSB((unsigned int)nbins)/2,
 			 lowerLimit, upperLimit);
   this->registerObject(this->phase_h);
@@ -37,7 +38,10 @@ void FourierSpectrumSubprocessor::processSubevent(eventinfo_t ei)
       double *reX=(double*)malloc(sizeof(double)*n);
       double *imX=(double*)malloc(sizeof(double)*n);
       for (uint32_t i=0; i<n; i++)
-	reX[i]=(double)(ei.trace->points[i+1]);
+	{
+	  reX[i]=getTracePoint(ei.trace, i+1);
+	  imX[i]=0.0;
+	}
       this->reFFT(reX, imX, n);
       for (uint32_t i=0; i<n/2; i++)
 	{

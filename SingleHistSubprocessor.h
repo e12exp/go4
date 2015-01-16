@@ -1,10 +1,14 @@
 #ifndef _SingleHistSubprocessor_H
 #define _SingleHistSubprocessor_H
-
+#include "HistogramAxis.h"
 #include "CalifaSubprocessor.h"
-#include "TH1.h"
+#include "TH2.h"
 //a subprocessor which registers a single histogram
 // you will have to overload this class to fill it. 
+
+#define TH(x, y) TH##x##y, x
+
+template<class T, int nAxis>
 class SingleHistSubprocessor: public CalifaSubprocessor
 {
  public:
@@ -14,6 +18,9 @@ class SingleHistSubprocessor: public CalifaSubprocessor
 			 double upperLimit, 
 			 double lowerLimit=0.0
 			 );
+  SingleHistSubprocessor(std::string name,
+			  HistogramAxis* h );
+
   //overload to fill histogram
   virtual void processEvent(CalifaParser* p)
   {

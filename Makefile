@@ -30,16 +30,7 @@ all: build
 
 CalifaProc.o:	CalifaConfig.h CalifaProc.cxx
 
-
-
-CalifaConfig.h:	CalifaConfig.h.sample
-	@echo "Creating default configuration file"
-	@echo "------------------------"
-	@echo "  Backup of original configuration file is stored to CalifaConfig.h.back"
-	@echo "------------------------"
-	@touch CalifaConfig.h
-	@cp CalifaConfig.h CalifaConfig.h.back
-	@cp CalifaConfig.h.sample CalifaConfig.h
+FOO:=$(shell copySampleConfig.sh)
 
 include Module.mk
 

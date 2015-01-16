@@ -1,15 +1,17 @@
 #include "SingleChannelSubprocessor.h"
-
-SingleChannelSubprocessor::SingleChannelSubprocessor(std::string name,
+#include <HistFillerSubprocessor.h>
+SingleChannelSubprocessor::SingleChannelSubprocessor(char* name,
 						     module_index_t idx,
 						     int nbins,
 						     double upperLimit, 
 						     double lowerLimit
 						     )
-  : SingleHistSubprocessor(name, nbins, upperLimit, lowerLimit)
+  : SingleHistSubprocessor<TH1D, 1>(makeHistName(name, &idx), nbins, upperLimit, lowerLimit)
 {
   this->idx=idx;
 }
+
+
 
 
 void SingleChannelSubprocessor::processEvent(CalifaParser* p)

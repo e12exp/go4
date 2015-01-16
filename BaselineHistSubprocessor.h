@@ -4,7 +4,7 @@
 class BaselineHistSubprocessor : public SingleChannelSubprocessor
 {
  public:
-  BaselineHistSubprocessor(std::string name,
+  BaselineHistSubprocessor(char* name,
 		     module_index_t idx);
   virtual void processSubevent(eventinfo_t ei);
 };
