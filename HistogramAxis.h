@@ -23,20 +23,33 @@ struct HistogramAxis
 #define DECLARE_EVNT(name) double  HistogramAxisHandlers_evnt_##name(CalifaParser* parser, CalifaParser::module_index_t* idx) EVNT_IMPL(name)
 #if NEED_BODIES
 #define EVNT_IMPL(name)   { GETEVNT; return evnt->name; }
-#define DECLARE_HISTAXIS(name, bins, min, max) HistogramAxis axis_##name = {#name, bins, min, max, HistogramAxisHandlers_evnt_##name};
+#define DECLARE_HISTAXIS(prefix, name, bins, min, max) HistogramAxis axis_ ## prefix ## _ ##name = {#name, bins, min, max, HistogramAxisHandlers_evnt_##name};
 #else
-#define DECLARE_HISTAXIS(name, bins, min, max) extern HistogramAxis axis_##name;
+#define DECLARE_HISTAXIS(prefix, name, bins, min, max) extern HistogramAxis axis_ ## prefix ## _ ## name;
 #define EVNT_IMPL(name)
 #endif
 
-#define ADD_EVNT_AXIS(name, bins, min, max) DECLARE_EVNT(name); DECLARE_HISTAXIS(name, bins, min, max); 
 
-ADD_EVNT_AXIS(energy, 65536, -32768, 32767);
-ADD_EVNT_AXIS(n_f, 65536, -32768, 32767);
-ADD_EVNT_AXIS(n_s, 65536, -32768, 32767);
-ADD_EVNT_AXIS(tot, 65536, -32768, 32767);
-ADD_EVNT_AXIS(num_pileup, 100, 0, 100);
-ADD_EVNT_AXIS(num_discarded, 100, 0, 100);
+
+DECLARE_EVNT(energy);
+DECLARE_EVNT(n_f);
+DECLARE_EVNT(n_s);
+DECLARE_EVNT(tot);
+DECLARE_EVNT(num_pileup);
+DECLARE_EVNT(num_discarded);
+
+DECLARE_HISTAXIS(full, energy, 65536, -32768, 32767);
+
+DECLARE_HISTAXIS(full, n_f, 65536, -32768, 32767);
+DECLARE_HISTAXIS(rebinned512, n_f, 65536/512, -32768, 32767);
+
+DECLARE_HISTAXIS(full, n_s, 65536, -32768, 32767);
+DECLARE_HISTAXIS(rebinned512, n_s, 65536/512, -32768, 32767);
+
+DECLARE_HISTAXIS(full, tot, 65536, -32768, 32767);
+DECLARE_HISTAXIS(full, num_pileup, 100, 0, 100);
+DECLARE_HISTAXIS(full ,num_discarded, 100, 0, 100);
+
 
 #define GET_TF1(idx, err_ret) const TF1* f=EnergyCal::getCal(idx); if (!f) return err_ret;
 

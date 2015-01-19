@@ -11,7 +11,8 @@ template<class HistType, int nAxis, int nIdx>
   //  typename SingleHistSubprocessor<HistType, nAxis>::module_index_t module_index_t;
   //new constructor: provide HistogramAxis
   HistFillerSubprocessor( module_index_t idx[nIdx],
-			    HistogramAxis h[nAxis] );
+			  HistogramAxis h[nAxis],
+			  int rebin=1 );
   
   //const char* makeHistName(CalifaParser::module_index_t idx[nAxis], HistogramAxis h[nAxis]);
 

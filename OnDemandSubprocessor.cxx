@@ -16,6 +16,7 @@ OnDemandSubprocessor::OnDemandSubprocessor(): energy_subprocessors(), trace_subp
 void OnDemandSubprocessor::processEvent(CalifaParser* p)
 {
   //char buf[1000];
+  static HistogramAxis qpid_axis[]={axis_full_n_f, axis_full_n_s};
   CalifaParser::eventmap_t* evts=p->getCalifaEvents();
   for (auto i=evts->begin(); i!=evts->end(); ++i)
     {
@@ -25,10 +26,11 @@ void OnDemandSubprocessor::processEvent(CalifaParser* p)
 	{
 	  //we have found an event without an energy histogram,
 	  //create one. 
-	  this->energy_subprocessors[idx]=new HistFillerSubprocessor<TH(1,I), 1>(&idx, &axis_energy);
+	  this->energy_subprocessors[idx]=new HistFillerSubprocessor<TH(1,I), 1>(&idx, &axis_full_energy);
 	  ldbg("created a new energy processor for %d:%d:%d.\n", 
 	       std::get<0>(idx), std::get<1>(idx), 
 	       std::get<2>(idx));
+	  new HistFillerSubprocessor<TH(2,I), 1>(&idx, qpid_axis, 64);
 
 	  if (HistogramAxis* ha=createCalEnergyAxis(idx))
 	    {

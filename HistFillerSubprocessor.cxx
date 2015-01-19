@@ -5,10 +5,10 @@
 //makeHistName<1,1>(h[0].descr, idx)
 template<class HistType, int nAxis, int nIdx>
 HistFillerSubprocessor<HistType, nAxis, nIdx>::HistFillerSubprocessor(module_index_t idx[nIdx],
-								      HistogramAxis h[nAxis]):
-  SingleHistSubprocessor<HistType, nAxis>(
-					  makeHistName(h[0].descr, &(idx[0]))
-					  , h)
+								      HistogramAxis h[nAxis],
+								      int rebin):
+  SingleHistSubprocessor<HistType, nAxis>
+  (makeHistName(h[0].descr, &(idx[0])), h, rebin)
 {
   for (int i=0; i<nIdx; i++)
     this->idx[i]=idx[i];
@@ -67,3 +67,4 @@ const char* makeHistName(char* base, CalifaParser::module_index_t  *idx)
 #include <TH1I.h>
 
 template class HistFillerSubprocessor<TH1I, 1, 1>;
+template class HistFillerSubprocessor<TH2I, 2, 1>;

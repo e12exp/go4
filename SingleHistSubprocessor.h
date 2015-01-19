@@ -19,7 +19,8 @@ class SingleHistSubprocessor: public CalifaSubprocessor
 			 double lowerLimit=0.0
 			 );
   SingleHistSubprocessor(std::string name,
-			  HistogramAxis* h );
+			 HistogramAxis* h,
+			 int rebin=1);
 
   //overload to fill histogram
   virtual void processEvent(CalifaParser* p)
