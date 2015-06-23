@@ -134,7 +134,7 @@ Bool_t CalifaProc::BuildEvent(TGo4EventElement * target)
     return kFALSE;
 
   for (auto sp=this->subprocessors.begin(); sp!=this->subprocessors.end(); ++sp)
-    (*sp)->processEvent(this->parser);
+    (*sp)->applyCut(this->parser);
   
   return kTRUE;
 }

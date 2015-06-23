@@ -11,6 +11,11 @@ class CalifaSubprocessor
  public:
   CalifaSubprocessor();
   virtual void registerSP();
+  virtual void applyCut(CalifaParser* p)
+  {
+    if (this->cut(p))
+      this->processEvent(p);
+  }
   virtual void processEvent(CalifaParser* p)=0;
   //returns a list of objects to be registered
   virtual std::list<TObject*> makeHists()
@@ -26,6 +31,10 @@ class CalifaSubprocessor
  protected:
   //alternativly, call this to register a processor
   virtual void registerObject(TObject * obj);
+  virtual bool cut(CalifaParser* p)
+  {
+    return true;
+  }
 };
 
 #endif

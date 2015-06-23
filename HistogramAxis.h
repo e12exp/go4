@@ -38,15 +38,15 @@ DECLARE_EVNT(tot);
 DECLARE_EVNT(num_pileup);
 DECLARE_EVNT(num_discarded);
 
-DECLARE_HISTAXIS(full, energy, 65536, -32768, 32767);
+DECLARE_HISTAXIS(full, energy, 65536, -32768, 32768);
 
-DECLARE_HISTAXIS(full, n_f, 65536, -32768, 32767);
-DECLARE_HISTAXIS(rebinned512, n_f, 65536/512, -32768, 32767);
+DECLARE_HISTAXIS(full, n_f, 65536, -32768, 32768);
+DECLARE_HISTAXIS(rebinned512, n_f, 65536/512, -32768, 32768);
 
 DECLARE_HISTAXIS(full, n_s, 65536, -32768, 32767);
-DECLARE_HISTAXIS(rebinned512, n_s, 65536/512, -32768, 32767);
+DECLARE_HISTAXIS(rebinned512, n_s, 65536/512, -32768, 32768);
 
-DECLARE_HISTAXIS(full, tot, 65536, -32768, 32767);
+DECLARE_HISTAXIS(full, tot, 65536, -32768, 32768);
 DECLARE_HISTAXIS(full, num_pileup, 100, 0, 100);
 DECLARE_HISTAXIS(full ,num_discarded, 100, 0, 100);
 
@@ -68,7 +68,7 @@ HistogramAxis* createCalEnergyAxis(CalifaParser::module_index_t idx)
 {
   GET_TF1(idx, NULL);
   HistogramAxis* h=(HistogramAxis*) malloc(sizeof(HistogramAxis));
-  HistogramAxis tmp={"cal_energy", 65536, f->Eval(-32768), f->Eval(32767), HistogramAxisHandlers_evnt_cal_en};
+  HistogramAxis tmp={"cal_energy", 65536, f->Eval(-32768), f->Eval(32768), HistogramAxisHandlers_evnt_cal_en};
   *h=tmp;
   return h;
 }

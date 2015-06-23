@@ -6,7 +6,7 @@
 #include "CalifaConfig.h"
 #include "BaselineHistSubprocessor.h"
 #include "HistogramAxis.h"
-#include "HistFillerSubprocessor.h"
+#include "ChannelCutHistFillerSubprocessor.h"
 
 OnDemandSubprocessor::OnDemandSubprocessor(): energy_subprocessors(), trace_subprocessors()
 {
@@ -26,17 +26,24 @@ void OnDemandSubprocessor::processEvent(CalifaParser* p)
 	{
 	  //we have found an event without an energy histogram,
 	  //create one. 
-	  this->energy_subprocessors[idx]=new HistFillerSubprocessor<TH(1,I), 1>(&idx, &axis_full_energy);
+	  this->energy_subprocessors[idx]=
+	    new ChannelCutHistFillerSubprocessor<TH(1,I), 1>(&idx, &axis_full_energy, 1,
+							     &idx, &axis_full_energy);
+
+//new HistFillerSubprocessor<TH(1,I), 1>(&idx, &axis_full_energy);
 	  ldbg("created a new energy processor for %d:%d:%d.\n", 
 	       std::get<0>(idx), std::get<1>(idx), 
 	       std::get<2>(idx));
-	  new HistFillerSubprocessor<TH(2,I), 1>(&idx, qpid_axis, 64);
-
+	  //new HistFillerSubprocessor<TH(2,I), 1>(&idx, qpid_axis, 64);
 	  if (HistogramAxis* ha=createCalEnergyAxis(idx))
 	    {
 	      new HistFillerSubprocessor<TH(1,I), 1>(&idx, ha);
 	      ldbg(" also created a calibrated energy processor\n");
+	      //  new ChannelCutHistFillerSubprocessor<TH(2,I), 1>(&idx, qpid_axis, 64,
+	      //						       &idx, ha, 30.0, 8000.0);
+
 	    }
+	  new HistFillerSubprocessor<TH(2,I), 1>(&idx, qpid_axis, 64);
 	}
       if (ei.trace && ! this->trace_subprocessors.count(idx))
 	{

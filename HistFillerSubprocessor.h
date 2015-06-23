@@ -14,7 +14,7 @@ template<class HistType, int nAxis, int nIdx>
 			  HistogramAxis h[nAxis],
 			  int rebin=1 );
   
-  //const char* makeHistName(CalifaParser::module_index_t idx[nAxis], HistogramAxis h[nAxis]);
+  const char* makeHistName(CalifaParser::module_index_t idx[nAxis], HistogramAxis h[nAxis]);
 
   virtual void processEvent(CalifaParser* p);
 

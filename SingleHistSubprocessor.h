@@ -9,7 +9,7 @@
 #define TH(x, y) TH##x##y, x
 
 template<class T, int nAxis>
-class SingleHistSubprocessor: public CalifaSubprocessor
+class SingleHistSubprocessor: public virtual CalifaSubprocessor
 {
  public:
   typedef CalifaParser::module_index_t module_index_t;
