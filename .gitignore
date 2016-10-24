@@ -9,8 +9,6 @@ MainUserAnalysis
 *.o
 *.so
 *.so.*
-CalifaConfig.h
-CalifaConfig.h.back
 *~
 .nfs*
 *.pdf

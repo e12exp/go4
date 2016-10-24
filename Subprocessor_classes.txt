@@ -1,11 +1,11 @@
 
 
-			CalifaSubprocessor
+	_______________CalifaSubprocessor_______________
 		  ^		^		  ^
-		  |v 		|v		  |
+		  | 		|		  |
     CutSubprocessor 	SingleHistSubprocessor<>  OnDemandSubprocessor
     ^ 			    ^	    	^
     |			    |		|
     |	SingleChannelSubprocessor  HistFillerSubprocessor
-    |	      		    
+    |	      		        
     |
