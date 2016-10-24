@@ -30,7 +30,7 @@ all: build
 
 CalifaProc.o:	CalifaConfig.h CalifaProc.cxx
 
-FOO:=$(shell copySampleConfig.sh)
+#FOO:=$(shell copySampleConfig.sh)
 
 include Module.mk
 

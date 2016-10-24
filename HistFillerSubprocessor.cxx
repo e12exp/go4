@@ -92,3 +92,4 @@ const char* makeHistName(char* base, CalifaParser::module_index_t  *idx)
 
 template class HistFillerSubprocessor<TH1I, 1, 1>;
 template class HistFillerSubprocessor<TH2I, 2, 1>;
+template class HistFillerSubprocessor<TH2I, 2, 2>;
