@@ -2,6 +2,8 @@
 #define _HistFillerSubprocessor_h
 #include "SingleHistSubprocessor.h"
 
+#define IDX_ANY CalifaParser::module_index_t(255, 255, 255)
+
 template<class HistType, int nAxis, int nIdx>
   class HistFillerSubprocessor:
   public SingleHistSubprocessor<HistType, nAxis>
@@ -17,8 +19,8 @@ template<class HistType, int nAxis, int nIdx>
   const char* makeHistName(CalifaParser::module_index_t idx[nAxis], HistogramAxis h[nAxis]);
 
   virtual void processEvent(CalifaParser* p);
-
  protected:
+  virtual void processEventIdx(CalifaParser* p, module_index_t idx[nIdx]);
   module_index_t idx[nIdx];
   typedef double (*eval_t)(CalifaParser* parser, CalifaParser::module_index_t* idx) ;
   //function pointer array to the function which extracts our data

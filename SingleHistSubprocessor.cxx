@@ -27,8 +27,10 @@ struct SingleHistSubprocessorHelper<T,1>
 {
   static T* createHist(std::string name, HistogramAxis* ha, int rebin )
   {
-    return new T(name.c_str(), name.c_str(),
-		 ha[0].nBins/rebin, ha[0].min, ha[0].max); 
+    T* h= new T(name.c_str(), name.c_str(),
+		ha[0].nBins/rebin, ha[0].min, ha[0].max);
+    h->GetXaxis()->SetTitle(ha[0].descr);
+    return h;
   }
 };
 
@@ -37,9 +39,12 @@ struct SingleHistSubprocessorHelper<T,2>
 {
   static T* createHist(std::string name, HistogramAxis* ha, int rebin )
   {
-    return new T(name.c_str(), name.c_str(),
-		 ha[0].nBins/rebin, ha[0].min, ha[0].max,
-		 ha[1].nBins/rebin, ha[1].min, ha[1].max); 
+    T* h= new T(name.c_str(), name.c_str(),
+		ha[0].nBins/rebin, ha[0].min, ha[0].max,
+		ha[1].nBins/rebin, ha[1].min, ha[1].max);
+    h->GetXaxis()->SetTitle(ha[0].descr);
+    h->GetYaxis()->SetTitle(ha[1].descr);
+    return h;
   }
 };
 

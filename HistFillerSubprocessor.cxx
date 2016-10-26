@@ -1,7 +1,7 @@
 #include "HistFillerSubprocessor.h"
 #include <tuple>
-#include  <boost/preprocessor/control/while.hpp>
-#include <boost/preprocessor/repetition/repeat.hpp>
+//#include  <boost/preprocessor/control/while.hpp>
+//#include <boost/preprocessor/repetition/repeat.hpp>
 //makeHistName<1,1>(h[0].descr, idx)
 template<class HistType, int nAxis, int nIdx>
 HistFillerSubprocessor<HistType, nAxis, nIdx>::HistFillerSubprocessor(module_index_t idx[nIdx],
@@ -14,12 +14,35 @@ HistFillerSubprocessor<HistType, nAxis, nIdx>::HistFillerSubprocessor(module_ind
     this->idx[i]=idx[i];
   for (int i=0; i<nAxis; i++)
     this->getVal[i]=h[i].getValue;
+
+  if (nIdx!=1)
+    for (int i=0; i<nIdx; i++)
+      if (idx[i]==IDX_ANY)
+	{
+	  fprintf(stderr, "Multiple ANY indices are not allowed!\n");
+	  exit(-1);
+	}
 }
 
 template<class HistType, int nAxis, int nIdx>
 void HistFillerSubprocessor<HistType, nAxis, nIdx>::processEvent(CalifaParser* p)
 {
-  
+  if (this->idx[0]!=IDX_ANY)
+    this->processEventIdx(p, this->idx);
+  else
+    {
+      CalifaParser::eventmap_t* evts=p->getCalifaEvents();
+      for (auto i=evts->begin(); i!=evts->end(); ++i)
+	{
+	   auto single_idx=i->first;
+	   this->processEventIdx(p, &single_idx);
+	}
+    }
+}
+
+template<class HistType, int nAxis, int nIdx>
+void HistFillerSubprocessor<HistType, nAxis, nIdx>::processEventIdx(CalifaParser* p, module_index_t idx[nIdx])
+{
   double r[nAxis];
   for (int i=0; i<nAxis; i++)
     {
@@ -34,6 +57,7 @@ void HistFillerSubprocessor<HistType, nAxis, nIdx>::processEvent(CalifaParser* p
   return;
 }
 
+
 template<class HistType, int nAxis, int nIdx>
 const char*  HistFillerSubprocessor<HistType, nAxis, nIdx>::makeHistName(CalifaParser::module_index_t idx[nAxis], HistogramAxis h[nAxis])
 {
@@ -44,9 +68,12 @@ const char*  HistFillerSubprocessor<HistType, nAxis, nIdx>::makeHistName(CalifaP
   if (nAxis == 1)
     snprintf(tmp, 100, h[0].descr);
   else
-    snprintf(tmp, 100, "%s_vs_%s", h[0].descr, h[1].descr)
-;
-  if (nIdx == 1)
+    snprintf(tmp, 100, "%s_vs_%s", h[0].descr, h[1].descr);
+  if (nIdx == 1 && idx[0]==IDX_ANY)
+    {
+      snprintf(buf, 200, "%s", tmp);
+    }
+  else if (nIdx == 1)
     {
       snprintf(buf, 200, "%s/sfp_%01d/febex_%02d/%s_%01d_%02d_%02d", 
 	       tmp,

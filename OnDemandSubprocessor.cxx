@@ -20,6 +20,9 @@ void OnDemandSubprocessor::processEvent(CalifaParser* p)
   //char buf[1000];
   static HistogramAxis qpid_axis[]={axis_full_n_f, axis_full_n_s};
   static HistogramAxis en2_axis[]={axis_lim_energy, axis_lim_energy};
+  static HistogramAxis module_channel[]={axis_fbx_sfp0_module, axis_fbx_channel};
+  static HistogramAxis module_mchannel[]={axis_fbx_sfp0_module, axis_mesytec_PA_ch};
+
   std::list<CalifaParser::module_index_t> l={IDX(0, 0, 1)};
   static std::map<CalifaParser::module_index_t, std::list<CalifaParser::module_index_t> > correlations=
     {
@@ -31,7 +34,7 @@ void OnDemandSubprocessor::processEvent(CalifaParser* p)
       {IDX(0, 0, 5), {IDX(0, 0, 6)}},
       {IDX(0, 0, 6), {IDX(0, 0, 7)}}
     };
-  CalifaParser::module_index_t x=IDX(0, 0, 0);
+  //CalifaParser::module_index_t x=IDX(0, 0, 0);
   CalifaParser::eventmap_t* evts=p->getCalifaEvents();
   for (auto i=evts->begin(); i!=evts->end(); ++i)
     {
@@ -39,17 +42,26 @@ void OnDemandSubprocessor::processEvent(CalifaParser* p)
       auto ei=i->second;
       if (ei.evnt && ! this->energy_subprocessors.count(idx))
 	{
+	  if (this->energy_subprocessors.size()==0)
+	    {
+	      auto any=IDX_ANY;
+	      // first energy histogram created, create now overview histogram
+	      new HistFillerSubprocessor<TH(2,I), 1>(&any, module_channel);
+	      new HistFillerSubprocessor<TH(2,I), 1>(&any, module_mchannel);
+	    }
+
+	  
 	  //we have found an event without an energy histogram,
 	  //create one. 
 	  this->energy_subprocessors[idx]=
-	    new ChannelCutHistFillerSubprocessor<TH(1,I), 1>(&idx, &axis_full_energy, 1,
-							     &idx, &axis_full_energy);
-
+	    new ChannelCutHistFillerSubprocessor<TH(1,I), 1>(&idx, &axis_lim_energy, 1,
+							     &idx, &axis_lim_energy);
 	  //new HistFillerSubprocessor<TH(1,I), 1>(&idx, &axis_full_energy);
 	  ldbg("created a new energy processor for %d:%d:%d.\n", 
 	       std::get<0>(idx), std::get<1>(idx), 
 	       std::get<2>(idx));
 	  //new HistFillerSubprocessor<TH(2,I), 1>(&idx, qpid_axis, 64);
+	  
 	  if (HistogramAxis* ha=createCalEnergyAxis(idx))
 	    {
 	      new HistFillerSubprocessor<TH(1,I), 1>(&idx, ha);
