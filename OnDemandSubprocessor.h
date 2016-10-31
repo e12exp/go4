@@ -13,6 +13,13 @@ class OnDemandSubprocessor : public CalifaSubprocessor
   typedef std::map<CalifaParser::module_index_t, CalifaSubprocessor*> subprocmap;
   subprocmap energy_subprocessors;
   subprocmap trace_subprocessors;
+
+
+  virtual CalifaParser::module_index_t getSensitivity()
+  {
+    return IDX_ANY; 
+  }
+
 };
 
 #endif

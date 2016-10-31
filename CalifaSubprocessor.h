@@ -6,6 +6,10 @@
 #include <list>
 #include "TObject.h"
 #include "debug.h"
+
+#define IDX_ANY  CalifaParser::module_index_t(255, 255, 255)
+#define IDX_NONE CalifaParser::module_index_t(255, 255, 254)
+
 class CalifaSubprocessor
 {
  public:
@@ -21,9 +25,19 @@ class CalifaSubprocessor
   virtual std::list<TObject*> makeHists()
     {
       //ldbg("CalifaSubprocessor::makeHists was not overridden.\n");
-      std::list<TObject*> empty;
-      return empty;
+      return {};
     }
+
+  // only events which have an entry in the specified module index
+  // will be processed for performance reasons.
+
+  //
+  // if you require multiple channels, just specify one and ignore
+  // events without the required coincidences.
+  virtual CalifaParser::module_index_t getSensitivity()
+  {
+    return IDX_NONE; 
+  }
   //virtual const char* getPath()=0;
   //empty means any
   //virtual std::list<CalifaParser::module_index_t> getSensitivityList();

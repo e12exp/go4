@@ -15,6 +15,12 @@ public virtual CalifaSubprocessor
   double cutMin;
   double cutMax;
   CalifaParser::module_index_t cut_idx;
+
+  virtual CalifaParser::module_index_t getSensitivity()
+  {
+    return cut_idx; 
+  }
+
 };
 
 #endif

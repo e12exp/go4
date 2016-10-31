@@ -18,6 +18,12 @@ class SingleChannelSubprocessor: public SingleHistSubprocessor<TH1D, 1>
   virtual void processEvent(CalifaParser* p);
   virtual void processSubevent(eventinfo_t ei){};
  protected:
+
+  virtual CalifaParser::module_index_t getSensitivity()
+  {
+    return idx; 
+  }
+
   module_index_t idx;
 };
 #endif

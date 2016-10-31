@@ -97,10 +97,20 @@ void CalifaProc::registerNewHistograms()
     {
       CalifaSubprocessor* sp=this->newsubprocessors.front();
       this->newsubprocessors.pop_front();
+
       std::list<TObject*> l=sp->makeHists();
-      for (auto it=l.begin(); it!=l.end(); ++it)
-	this->registerObject(*it);
-      this->subprocessors.push_back(sp);
+      for (auto it: l)
+	this->registerObject(it);
+
+      auto sens=sp->getSensitivity();
+      this->subprocessors[sens].push_back(sp);
+      if (sens==IDX_NONE && !l.empty())
+	{
+	  TNamed* n=dynamic_cast<TNamed*>(l.front());
+	  if (n)
+	    lerror( "The subprocessor which added TNamed %s did not set a channel sensitivity,"
+		    " this histogram will never get filled. ", n->GetName() );
+	}
     }
 }
 
@@ -133,9 +143,15 @@ Bool_t CalifaProc::BuildEvent(TGo4EventElement * target)
   if (this->parser->parseGo4(fInput))
     return kFALSE;
 
-  for (auto sp=this->subprocessors.begin(); sp!=this->subprocessors.end(); ++sp)
-    (*sp)->applyCut(this->parser);
-  
+  for (auto it:*(this->parser->getCalifaEvents()))
+    if (this->subprocessors.count(it.first))
+      for (auto sp : this->subprocessors[it.first])
+	(sp)->applyCut(this->parser);
+
+  if (this->subprocessors.count(IDX_ANY))
+      for (auto sp : this->subprocessors[IDX_ANY])
+	(sp)->applyCut(this->parser);
+
   return kTRUE;
 }
 

@@ -8,7 +8,7 @@
 template<class HistType, int nAxis, int nIdx>
 class ChannelCutHistFillerSubprocessor:
   public HistFillerSubprocessor<HistType, nAxis, nIdx>,
-  public ChannelCutSubprocessor
+  public virtual ChannelCutSubprocessor
 {
  public:
   ChannelCutHistFillerSubprocessor( CalifaParser::module_index_t idx[nIdx],
@@ -18,6 +18,11 @@ class ChannelCutHistFillerSubprocessor:
 				    HistogramAxis* cut_axis,
 				    double cutMin=-INFINITY,
   				    double cutMax=INFINITY );
+  virtual CalifaParser::module_index_t getSensitivity()
+  {
+    return HistFillerSubprocessor<HistType, nAxis, nIdx>::getSensitivity(); 
+  }
+
   
 };
 
