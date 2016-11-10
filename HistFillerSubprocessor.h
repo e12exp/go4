@@ -1,19 +1,26 @@
 #ifndef _HistFillerSubprocessor_h
 #define _HistFillerSubprocessor_h
 #include "SingleHistSubprocessor.h"
+#include <cstdbool>
 
-
-template<class HistType, int nAxis, int nIdx>
+template<class HistType, int nAxis, int nIdx, bool hasWeight=0>
   class HistFillerSubprocessor:
   public SingleHistSubprocessor<HistType, nAxis>
 {
+  // either you provide one index, which will be used for any axes, or
+  // provide one for each axis (including the weight axis). 
+  static_assert( nIdx==1                         // one index for everything
+		 || ( nIdx == nAxis+hasWeight),   // different index for everything, 
+		 "either you provide one index, which will be used for any axes, or "
+		 "provide one for each axis (including the weight axis, if hasWeight)"); 
+
  public:
   typedef CalifaParser::module_index_t module_index_t;
   //  typename SingleHistSubprocessor<HistType, nAxis>::module_index_t module_index_t;
   //new constructor: provide HistogramAxis
   HistFillerSubprocessor( module_index_t idx[nIdx],
 			  HistogramAxis h[nAxis],
-			  int rebin=1 );
+			  int rebin=1);
   
   const char* makeHistName(CalifaParser::module_index_t idx[nAxis], HistogramAxis h[nAxis]);
 

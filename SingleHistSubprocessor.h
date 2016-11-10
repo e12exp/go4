@@ -26,11 +26,12 @@ class SingleHistSubprocessor: public virtual CalifaSubprocessor
   virtual void processEvent(CalifaParser* p)
   {
   };
-  virtual TH1* getHist()
+  virtual T* getHist()
   {
     return this->h;
   }
  protected:
-  TH1* h;
+  T* h=0;
+  std::string name="";
 };
 #endif

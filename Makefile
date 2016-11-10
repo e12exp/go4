@@ -39,7 +39,7 @@ test:
 
 #GCCDIR=/home/pklenze/software/gcc-4.9.1/
 GCCDIR=/usr
-CXXFLAGS:=$(CXXFLAGS) -std=c++0x -g -I $(PWD) -Wall -Wno-unused-variable -Wno-write-strings
+CXXFLAGS:=$(CXXFLAGS) -std=c++1y -g -I $(PWD) -Wall -Wno-unused-variable -Wno-write-strings
 LDFLAGS:=$(LDFLAGS) -L $(GCCDIR)/lib64
 CXX=$(GCCDIR)/bin/g++
 LD_LIBRARY_PATH:=$(LD_LIBRARY_PATH):$(GCCDIR)/lib

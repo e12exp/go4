@@ -5,7 +5,7 @@
 #include "CalifaParser.h"
 #include "EnergyCal.h"
 #include "TF1.h"
-
+#include "convert_idx.h"
 
 struct HistogramAxis
 {
@@ -14,6 +14,7 @@ struct HistogramAxis
   double min;
   double max;
   double (*getValue)(CalifaParser* parser, CalifaParser::module_index_t* idx);
+  int is_one;
 };
 
 #define GETPARSER if (!parser ) return NAN;
@@ -23,11 +24,11 @@ struct HistogramAxis
 #define DECLARE_EVNT(name) double  HistogramAxisHandlers_evnt_##name(CalifaParser* parser, CalifaParser::module_index_t* idx) EVNT_IMPL(name)
 #if NEED_BODIES
 #define EVNT_IMPL(name)   { GETEVNT; return evnt->name; }
-#define DECLARE_HISTAXIS(prefix, name, bins, min, max) HistogramAxis axis_ ## prefix ## _ ## name = {#prefix "_" #name, bins, min, max, HistogramAxisHandlers_evnt_##name};
-#define DECLARE_HISTAXIS2(name, def) HistogramAxis axis_ ## name = def ;
+#define DECLARE_HISTAXIS(prefix, name, bins, min, max) HistogramAxis axis_ ## prefix ## _ ## name = {#prefix "_" #name, bins, min, max, HistogramAxisHandlers_evnt_##name, 0};
+#define DECLARE_HISTAXIS2(name, ...) HistogramAxis axis_ ## name = {__VA_ARGS__} ;
 #else
 #define DECLARE_HISTAXIS(prefix, name, bins, min, max) extern HistogramAxis axis_ ## prefix ## _ ## name;
-#define DECLARE_HISTAXIS2(name, def) extern HistogramAxis axis_ ## name ;
+#define DECLARE_HISTAXIS2(name, ...) extern HistogramAxis axis_ ## name ;
 #define EVNT_IMPL(name)
 #endif
 
@@ -79,15 +80,13 @@ double HistogramAxisHandlers_evnt_channel(CalifaParser* parser, CalifaParser::mo
   return std::get<2>(*idx);
 }
 
-//converts febex channels (0..15) to mesytec channels (1..16)
-int febex2preamp(int fbxch)
+
+/*double HistogramAxisHandlers_evnt_one(CalifaParser* parser, CalifaParser::module_index_t* idx)
 {
-  if (fbxch>7)
-    return 8+febex2preamp(fbxch-8);
-  if (fbxch<1 || fbxch==7)
-    return fbxch+1;
-  return 8-fbxch;
-}
+  return 1;
+  }*/
+
+
 
 
 double HistogramAxisHandlers_evnt_PA_ch(CalifaParser* parser, CalifaParser::module_index_t* idx)
@@ -104,14 +103,31 @@ double  HistogramAxisHandlers_evnt_cal_en(CalifaParser* parser, CalifaParser::mo
   GET_TF1(*idx, NAN);
   return f->Eval(evnt->energy);
 }
+
+/*
+template<int petalNo>
+double HistogramAxisHandlers_evnt_petal_(CalifaParser* parser, CalifaParser::module_index_t* idx)
+{
+  GETEVNT;
+  
+}
+
+#define TODO(n) double (*HistogramAxisHandlers_evnt_petal ## n ##  _)(CalifaParser*, CalifaParser::module_index_t*) =\
+    HistogramAxisHandlers_evnt_sfp_module<n>
+*/
+
 #endif  // NEED_BODIES //////////////////////////////////////////////////////
+
+// axis_fbx_sfp0_module filters for sfp0 and returns the module number.
+// 
 
 DECLARE_HISTAXIS(fbx,sfp0_module, 19, 0, 19);
 DECLARE_HISTAXIS(fbx,sfp1_module, 19, 0, 19);
 DECLARE_HISTAXIS(fbx,sfp2_module, 19, 0, 19);
 DECLARE_HISTAXIS(fbx,sfp3_module, 19, 0, 19);
 DECLARE_HISTAXIS(fbx,channel,     16, 0, 16);
-DECLARE_HISTAXIS(mesytec,PA_ch,     16, 1, 17);
+DECLARE_HISTAXIS(mesytec,PA_ch,   16, 1, 17);
+//DECLARE_HISTAXIS2(weight_one, "weight_one",1,0,1,HistogramAxisHandlers_evnt_one, 1) ;
 
 // calibrated energy is a special case, as the range is dependent on the channel calibration
 HistogramAxis* createCalEnergyAxis(CalifaParser::module_index_t idx)

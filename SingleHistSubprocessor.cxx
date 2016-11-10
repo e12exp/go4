@@ -1,19 +1,6 @@
 #include "SingleHistSubprocessor.h"
 #include "debug.h"
-
-template<class T, int nAxis>
-SingleHistSubprocessor<T, nAxis>::SingleHistSubprocessor(std::string name,
-					       int nbins,
-					       double upperLimit, 
-					       double lowerLimit
-					       )
-{
-  //  linfo("creating TH1I(%s, %s, %d, %d, %d)")
-  //Yeah, TH1D suck for counting, but until ROOT supports templates 
-  // (fat chance!) we will stick to this for simplicity
-  this->h=new TH1D(name.c_str(), name.c_str(), nbins, lowerLimit, upperLimit);
-  this->registerObject(h);
-}
+#include <assert.h>
 
 
 template<class T, int nAxis>
@@ -48,6 +35,31 @@ struct SingleHistSubprocessorHelper<T,2>
   }
 };
 
+#include<map>
+class TH1;
+std::map<std::string, TH1*> histmap={};
+
+template<class T, int nAxis>
+SingleHistSubprocessor<T, nAxis>::SingleHistSubprocessor(std::string name,
+					       int nbins,
+					       double upperLimit, 
+					       double lowerLimit
+					       )
+{
+  //  linfo("creating TH1I(%s, %s, %d, %d, %d)")
+  //Yeah, TH1D suck for counting, but until ROOT supports templates 
+  // (fat chance!) we will stick to this for simplicity
+  assert(nAxis==1);
+  HistogramAxis tmp={"tmp", nbins, lowerLimit, upperLimit, NULL, 0};
+  this->h=SingleHistSubprocessorHelper<T, nAxis>::createHist(name, &tmp, 1);
+  assert(histmap.count(name)==0);
+  histmap[name]=this->h;
+  this->name=name;
+  this->registerObject(h);
+  }
+
+
+
 
 template<class T, int nAxis>
 SingleHistSubprocessor<T, nAxis>::SingleHistSubprocessor(std::string name,
@@ -55,6 +67,10 @@ SingleHistSubprocessor<T, nAxis>::SingleHistSubprocessor(std::string name,
 							 int rebin)
 {
   this->h=SingleHistSubprocessorHelper<T, nAxis>::createHist(name, ha, rebin);
+  this->name=name;
+  assert(histmap.count(name)==0);
+  histmap[name]=this->h;
+  printf("created %s\n", this->h->GetName());
   this->registerObject(this->h);
 }
 

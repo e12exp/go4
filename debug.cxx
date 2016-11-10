@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string>
 #include <stdint.h>
+#include <unistd.h>
 int logmsg(int type,  std::string format, ...)
 {
   va_list args2;
@@ -18,7 +19,7 @@ int logmsg(int type,  std::string format, ...)
 void dumpMem(void* p, size_t len)
 {
   uint8_t* ip=(uint8_t*)p;
-  fprintf(stderr, "contents of memory at %p (%d bytes)", ip, len);
+  fprintf(stderr, "contents of memory at %p (%ld bytes)", ip, len);
   for (size_t i=0; i<len; i++)
     {
       if (!(i%16))
@@ -29,6 +30,22 @@ void dumpMem(void* p, size_t len)
     }
   fprintf(stderr, "\n");
 }
+
+//#define DBG_GDB
+
+int __attribute__((weak)) wait_for_gdb()
+{
+  //by default, do not wait
+#ifdef DBG_GDB
+  while (1)
+    sleep(1);
+#endif
+  return 0;
+}
+
+int my_dummy_global=wait_for_gdb();
+
+
 #ifdef DEBUGDEBUG
 int main(int argc, char**argv)
 {
