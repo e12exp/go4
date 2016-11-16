@@ -42,7 +42,7 @@ DECLARE_EVNT(num_pileup);
 DECLARE_EVNT(num_discarded);
 
 DECLARE_HISTAXIS(full, energy, 65536, -32768, 32768);
-DECLARE_HISTAXIS(lim, energy, 2000, 0, 2000);
+DECLARE_HISTAXIS(lim, energy, 4000, 0, 4000);
 
 DECLARE_HISTAXIS(full, n_f, 65536, -32768, 32768);
 DECLARE_HISTAXIS(rebinned512, n_f, 65536/512, -32768, 32768);
@@ -55,6 +55,15 @@ DECLARE_HISTAXIS(full, num_pileup, 100, 0, 100);
 DECLARE_HISTAXIS(full, num_discarded, 100, 0, 100);
 
 #if NEED_BODIES //////////////////////////////////////////////////////
+
+double HistogramAxisHandlers_evnt_sfp0_module_dual(CalifaParser* parser,
+						     CalifaParser::module_index_t* idx)
+{
+  GETEVNT;
+  uint16_t en=evnt->energy;
+  return std::get<1>(*idx)+10*(en>5000 );
+}
+
 
 template <int sfpNo>
 double HistogramAxisHandlers_evnt_sfp_module(CalifaParser* parser, CalifaParser::module_index_t* idx)
@@ -104,6 +113,59 @@ double  HistogramAxisHandlers_evnt_cal_en(CalifaParser* parser, CalifaParser::mo
   return f->Eval(evnt->energy);
 }
 
+double HistogramAxisHandlers_evnt_pulser(CalifaParser* parser, CalifaParser::module_index_t* idx)
+{
+  static const CalifaParser::module_index_t idx0=std::make_tuple(0, 8, 4);
+  if (!parser->getCalifaEvents()->count(idx0))
+    return NAN;
+  // no pulser
+
+  {
+    auto ei=parser->getCalifaEvents()->at(idx0);
+    if (!ei.evnt)
+      return NAN;
+  }
+
+  //  if (std::get<2>(*idx)==0) // only count channel 0 of each febex
+  //  return NAN;
+
+  if (!idx || !parser->getCalifaEvents()->count(*idx))
+    return 0;
+  auto ei=parser->getCalifaEvents()->at(*idx);
+  if (!ei.evnt) 
+    return 0;
+  auto evnt=ei.evnt;
+  uint16_t en=evnt->energy;
+  return 1+(5000<en) ;
+}
+
+double HistogramAxisHandlers_evnt_ts_diff(CalifaParser* parser, CalifaParser::module_index_t* idx)
+{
+  static const CalifaParser::module_index_t idx0=std::make_tuple(0, 0, 0);
+  if (!idx || !parser->getCalifaEvents()->count(*idx) || !parser->getCalifaEvents()->count(idx0))
+    return NAN;
+  uint64_t ts0, ts1;
+
+  {
+    auto ei=parser->getCalifaEvents()->at(*idx);
+    if (!ei.evnt)
+      return NAN;
+    //    if (ei.evnt->energy < 5000)
+    //  return NAN;
+    ts1= ei.evnt->timestamp;
+  }
+  {
+    auto ei=parser->getCalifaEvents()->at(idx0);
+    if (!ei.evnt)
+      return NAN;
+    if (ei.evnt->energy < 5000)
+      return NAN;
+
+    ts0= ei.evnt->timestamp;
+  }
+  return (int64_t)ts1-(int64_t)ts0;
+}
+
 /*
 template<int petalNo>
 double HistogramAxisHandlers_evnt_petal_(CalifaParser* parser, CalifaParser::module_index_t* idx)
@@ -127,6 +189,9 @@ DECLARE_HISTAXIS(fbx,sfp2_module, 19, 0, 19);
 DECLARE_HISTAXIS(fbx,sfp3_module, 19, 0, 19);
 DECLARE_HISTAXIS(fbx,channel,     16, 0, 16);
 DECLARE_HISTAXIS(mesytec,PA_ch,   16, 1, 17);
+DECLARE_HISTAXIS(coinc,pulser, 3, 0, 3);
+DECLARE_HISTAXIS(coinc,ts_diff, 420*2, -420, 420);
+DECLARE_HISTAXIS(fbx, sfp0_module_dual, 20, 0, 20);
 //DECLARE_HISTAXIS2(weight_one, "weight_one",1,0,1,HistogramAxisHandlers_evnt_one, 1) ;
 
 // calibrated energy is a special case, as the range is dependent on the channel calibration
@@ -135,7 +200,8 @@ HistogramAxis* createCalEnergyAxis(CalifaParser::module_index_t idx)
 {
   GET_TF1(idx, NULL);
   HistogramAxis* h=(HistogramAxis*) malloc(sizeof(HistogramAxis));
-  HistogramAxis tmp={"cal_energy", 65536, f->Eval(-32768), f->Eval(32768), HistogramAxisHandlers_evnt_cal_en};
+  //HistogramAxis tmp={"cal_energy", 65536, f->Eval(-32768), f->Eval(32768), HistogramAxisHandlers_evnt_cal_en};
+HistogramAxis tmp={"cal_energy", 4000, 0, 16000, HistogramAxisHandlers_evnt_cal_en};
   *h=tmp;
   return h;
 }

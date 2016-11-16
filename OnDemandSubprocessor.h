@@ -10,6 +10,9 @@ class OnDemandSubprocessor : public CalifaSubprocessor
   OnDemandSubprocessor();
   virtual void processEvent(CalifaParser* p);
  protected:
+
+  void addChannel(CalifaParser* p, CalifaParser::module_index_t idx, int tracepoints, bool recurse=false);
+
   typedef std::map<CalifaParser::module_index_t, CalifaSubprocessor*> subprocmap;
   subprocmap energy_subprocessors;
   subprocmap trace_subprocessors;

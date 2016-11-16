@@ -50,9 +50,13 @@ typedef struct trace_head
 trace_head_t;
 } //extern "C"
 
+#include <stdio.h>
+#define SIGNED_TRACES 1
 inline double getTracePoint(struct trace_head* h, int n)
 {
-  if (h->type==3 || h->type==4)
+  //printf("%d\n", h->type);
+  //if (h->type==3 || h->type==4)
+  if (SIGNED_TRACES)
     return h->points.s[n];
   else
     return h->points.u[n];

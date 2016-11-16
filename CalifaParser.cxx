@@ -212,14 +212,22 @@ int CalifaParser::parseGosip(uint32_t *&p,
   module_index_t idx=std::make_tuple((uint8_t)(gosip_sub->sfp_id),
 				     (uint8_t)(gosip_sub->module_id),
 				     gosip_sub->submemory_id);
+  bool duplicate=0;
   if (this->eventmap.count(idx))
     {
-      lerror("gosip: multiple subheaders for the same channel, ignoring all but the first.\n");
-      return 1;
+      lerror("gosip: multiple subheaders for the same channel (%d.%d.%d), using one with highest energy.\n",
+	     (gosip_sub->sfp_id),
+	     (uint8_t)(gosip_sub->module_id),
+	     gosip_sub->submemory_id	     );
+      //      return 1;
+      duplicate=1;
     }
   ei=&(this->eventmap[idx]);
   ei->gosip=gosip_sub;
-  ei->evnt=NULL;
+  if (!duplicate)
+    {
+      ei->evnt=NULL;
+    }
   ei->trace=NULL;
   return 0;
 }
@@ -229,7 +237,6 @@ int CalifaParser::parseEvent(uint32_t *&pl_tmp,
 			     eventinfo_t* ei)
 {
   event_t* evnt=(event_t*)malloc(sizeof(event_t));
-  ei->evnt=evnt;
   uint32_t processed_size;
   switch((*pl_tmp) >> 16)
     {
@@ -274,17 +281,45 @@ int CalifaParser::parseEvent(uint32_t *&pl_tmp,
       break;
     default:
       lerror(" event: Invalid event magic number: 0x%04x\n", evnt->magic);
-      free(ei->evnt);
+      free(evnt);
       ei->evnt=NULL;
       return 1;
     }
+
+
+  bool skip=0;
+  if (!(ei->evnt) || evnt->energy > ei->evnt->energy)
+    {
+      if (ei->evnt)
+	{
+	  lerror("replacing event for %d.%d.%d (en %d) by an event for the same subheader with energy %d\n",
+		 (ei->gosip->sfp_id), (uint8_t)(ei->gosip->module_id),  ei->gosip->submemory_id,
+		 ei->evnt->energy, evnt->energy);
+	  free(ei->evnt);
+	}
+      ei->evnt=evnt;
+    }
+  else
+    {
+      lerror("not replacing event for %d.%d.%d (en %d) by an event for the same subheader with energy %d\n",
+	     (ei->gosip->sfp_id), (uint8_t)(ei->gosip->module_id),  ei->gosip->submemory_id,
+	     ei->evnt->energy, evnt->energy);
+      skip=1;
+    }
+
+
+
 
   if(evnt->size > processed_size && (*pl_tmp >> 16) == 0xBEEF)
     {
       lerror("found TOT data");
       //time over threshold
-      evnt->tot = *pl_tmp++ & 0xffff;
-      memcpy(evnt->tot_samples, pl_tmp, 8); 
+	  uint16_t tot = *pl_tmp++ & 0xffff;
+      if (!skip)
+	{
+	  evnt->tot=tot;
+	  memcpy(evnt->tot_samples, pl_tmp, 8); 
+	}
       pl_tmp += 2;
       processed_size += 12;
     }
@@ -306,16 +341,22 @@ int CalifaParser::parseEvent(uint32_t *&pl_tmp,
 	}
       else
 	{
-	  ei->trace=data;
-	  //don't ask me why we need -2 here, but the last points
-	  // are often bad. 
-	  ei->tracepoints=data->size/2-sizeof(trace_head_t)-2;
+	  if (!skip)
+	    {
+	      ei->trace=data;
+	      //don't ask me why we need -2 here, but the last points
+	      // are often bad. 
+	      ei->tracepoints=data->size/2-sizeof(trace_head_t)-2;
+	    }
 	}
     }
   else
     {
       //lerror("No traces found!\n");
     }
+  if (skip)
+    free(evnt);
+
   return 0;
 }
 
