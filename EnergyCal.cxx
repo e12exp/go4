@@ -1,4 +1,5 @@
 #include "EnergyCal.h"
+#include "TRandom.h"
 #include <stdio.h>
 #include "debug.h"
 #define FUN (EnergyCal::getCal(idx))
@@ -20,18 +21,18 @@ const TF1* EnergyCal::getCal(CalifaParser::module_index_t idx)
 	  CalifaParser::module_index_t idx;
 	  char buf[21];
 	  while(fscanf(f, " %hhx %hhx %hhx %20s",
-			 &(std::get<0>(idx)),
-			 &(std::get<1>(idx)),
-			 &(std::get<2>(idx)),
+			 &(GET_SFP(idx)),
+			 &(GET_MOD(idx)),
+			 &(GET_CH(idx)),
 				 buf)==4)
 	    {
 	      char name[30];
 	      snprintf(name, 30, "en_cal_%d", count++);
 	      (*EnergyCal::cal)[idx]=new TF1(name, buf);
 	      linfo("read channel calibration %x %x %x: %s\n", 
-		    (std::get<0>(idx)),
-		    (std::get<1>(idx)),
-		    (std::get<2>(idx)),buf);
+		    (GET_SFP(idx)),
+		    (GET_MOD(idx)),
+		    (GET_CH(idx)),buf);
 	    }
 	  lerror("read %d calibration lines\n", count);
 	  fclose(f);

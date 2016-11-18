@@ -64,9 +64,6 @@ int CalifaParser::parseGo4(TGo4MbsEvent* fInput)
 	  auto e=this->parser->getCalifaEvents();
 	  for (auto ei=e->begin(); ei!=e->end(); ++ei)
 	    linfo("found index: %d %d %d\n", 
-		  std::get<0>(ei->first), 
-		  std::get<1>(ei->first), 
-		  std::get<2>(ei->first)
 		  );*/
 	  //ldbg("calling processEvent for %d processors\n", this->subprocessors.size());
 	}
@@ -209,7 +206,8 @@ int CalifaParser::parseGosip(uint32_t *&p,
       return 1;
     }
   //linfo("found a good event\n");
-  module_index_t idx=std::make_tuple((uint8_t)(gosip_sub->sfp_id),
+  module_index_t idx=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx,
+				     (uint8_t)(gosip_sub->sfp_id),
 				     (uint8_t)(gosip_sub->module_id),
 				     gosip_sub->submemory_id);
   bool duplicate=0;
@@ -223,6 +221,8 @@ int CalifaParser::parseGosip(uint32_t *&p,
       duplicate=1;
     }
   ei=&(this->eventmap[idx]);
+  memset(ei, 0, sizeof(eventinfo_t));
+
   ei->gosip=gosip_sub;
   if (!duplicate)
     {

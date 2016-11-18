@@ -128,7 +128,7 @@ CalifaProc::CalifaProc(const char *name, TGo4EventProcessor* go4ep)
   disable_backtrace();
 #endif
   CalifaProc::gProc=this;
-  this->parser=new CalifaParser();
+  this->parser=new CalifaSumParser();
   this->go4ep=go4ep;
   (new OnDemandSubprocessor())->registerSP();
 }

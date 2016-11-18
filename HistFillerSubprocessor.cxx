@@ -76,12 +76,61 @@ void HistFillerSubprocessor<HistType, nAxis, nIdx, hasWeight>::processEventIdx(C
   
 }
 
+static void appendIdxName(char* buf, size_t totlen, const char* prefix, CalifaParser::module_index_t idx, const char* postfix)
+{
+  auto start=strlen(buf);
+  auto b=buf+start;
+  auto len=totlen-start;
+  if (idx==IDX_ANY)
+    snprintf(b, len, "%s%s", prefix, postfix);
+  else if (GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxChannelIdx)
+    snprintf(b, len, "%s_%01d_%02d_%02d%s", 
+	     prefix,
+	     GET_SFP(idx), GET_MOD(idx),
+	     GET_CH(idx),
+	     postfix);
+  else if (GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxModuleIdx)
+    snprintf(b, len, "%s_%01d_%02d_*%s", 
+	     prefix,
+	     GET_SFP(idx), GET_MOD(idx),
+	     postfix);
+  else if (GET_TYPE(idx)==CalifaParser::subEventIdxType::petalIdx)
+    snprintf(b, len, "%s_petal_%01d_%s", 
+	     prefix,
+	     GET_PETAL(idx),
+	     postfix);
+  return;
+}
+
+static void appendIdxPath(char* buf, size_t totlen, const char* prefix, CalifaParser::module_index_t idx)
+{
+  auto start=strlen(buf);
+  auto b=buf+start;
+  auto len=totlen-start;
+  if (idx==IDX_ANY)
+    ; // nothing
+  else if (GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxChannelIdx)
+      snprintf(b, len, "%s/sfp_%01d/febex_%02d/", 
+	       prefix,
+	       GET_SFP(idx), GET_MOD(idx));
+  else if (GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxModuleIdx)
+    snprintf(b, len, "%s/sfp_%01d/", 
+	     prefix,
+	     GET_SFP(idx)
+	     );
+  else if (GET_TYPE(idx)==CalifaParser::subEventIdxType::petalIdx)
+    snprintf(b, len, "%s/petals/", 
+	     prefix );
+  return;
+}
+
 
 template<class HistType, int nAxis, int nIdx, bool hasWeight>
 const char*  HistFillerSubprocessor<HistType, nAxis, nIdx, hasWeight>::makeHistName(CalifaParser::module_index_t idx[nAxis], HistogramAxis h[nAxis])
 {
   //    char* buf=(char*)malloc(200);
   char* buf=(char*)malloc(200); //we are dealing with ROOT, a bit of memory will always leak
+  buf[0]=0;
   char tmp[100];
   tmp[0]=0;
   for (int n=0; n<nAxis+hasWeight; n++)
@@ -91,41 +140,30 @@ const char*  HistFillerSubprocessor<HistType, nAxis, nIdx, hasWeight>::makeHistN
 	       (n+1==nAxis+hasWeight)?"":(n+2==nAxis+hasWeight && hasWeight)?"_w_":"_vs_");
     }
   
-  if (nIdx == 1 && idx[0]==IDX_ANY)
+
+  if (nIdx == 1)
     {
-      snprintf(buf, 200, "%s", tmp);
-    }
-  else if (nIdx == 1)
-    {
-      snprintf(buf, 200, "%s/sfp_%01d/febex_%02d/%s_%01d_%02d_%02d", 
-	       tmp,
-	       std::get<0>(idx[0]), std::get<1>(idx[0]),
-	       tmp,
-	       std::get<0>(idx[0]), std::get<1>(idx[0]),
-	       std::get<2>(idx[0]));
+      appendIdxPath(buf, 200, tmp, idx[0]);
+      appendIdxName(buf, 200, tmp, idx[0], "");
     }
   else
     {
-      snprintf(buf, 200, "%s/sfp_%01d/febex_%02d/", 
-	       tmp,
-	       std::get<0>(idx[0]), std::get<1>(idx[0]));
+      appendIdxPath(buf, 200, tmp, idx[0]);
       for (int n=0; n<nAxis+hasWeight; n++)
 	{
 	  size_t l=strlen(buf);
-	  snprintf(buf+l, 200-l, "%s_%01d_%02d_%02d%s", h[n].descr,
-		   std::get<0>(idx[n]), std::get<1>(idx[n]),
-		   std::get<2>(idx[n]),
-		   (n+1==nAxis+hasWeight)?"":(n+2==nAxis+hasWeight && hasWeight)?"_w_":"_vs_");
+	  appendIdxName(buf, 200, h[n].descr, idx[n],
+			(n+1==nAxis+hasWeight)?"":(n+2==nAxis+hasWeight && hasWeight)?"_w_":"_vs_");
 	}      
     }
-  printf("created hist: %s\n", buf);
+  //printf("created hist: %s\n", buf);
   return buf;
 }
 
 // also old?
 void writeHistPath(char* out, int n, char* base, CalifaParser::module_index_t& idx)
 {
-  snprintf(out, n, "%s/sfp_%01d/febex_%02d/", base, std::get<0>(idx), std::get<1>(idx));
+  snprintf(out, n, "%s/sfp_%01d/febex_%02d/", base, GET_SFP(idx), GET_MOD(idx));
 }
 
 //old
@@ -134,10 +172,10 @@ const char* makeHistName(char* base, CalifaParser::module_index_t  *idx)
   char* buf=(char*)malloc(200);
   snprintf(buf, 200, "%s/sfp_%01d/febex_%02d/%s_%01d_%02d_%02d", 
 	   base,
-	   std::get<0>(idx[0]), std::get<1>(idx[0]),
+	   GET_SFP(idx[0]), GET_MOD(idx[0]),
 	   base,
-	   std::get<0>(idx[0]), std::get<1>(idx[0]),
-	   std::get<2>(idx[0]));
+	   GET_SFP(idx[0]), GET_MOD(idx[0]),
+	   GET_CH(idx[0]));
   return buf;
 }
 

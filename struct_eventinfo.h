@@ -9,6 +9,7 @@ typedef struct eventinfo
   trace_head_t *trace;
   //to be continued
   uint32_t tracepoints;
+  double calEnergy;
 } eventinfo_t;
 
 

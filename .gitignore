@@ -18,3 +18,5 @@ foo
 low_en
 .fuse*
 core
+*.txt
+*.png

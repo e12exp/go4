@@ -24,6 +24,7 @@ class CalifaParser;
 // WrapperProc, and a C-compatible interface to CalifaProc named CalifaBaseProc.
 // Yes, this is ugly. 
 
+#include "CalifaParser.h"
 class CalifaProc
 {
    public:
@@ -46,7 +47,7 @@ class CalifaProc
 
   void registerObject(TObject* o);
  protected:
-  typedef std::tuple<uint8_t, uint8_t, uint8_t> module_index_t;
+  typedef CalifaParser::module_index_t module_index_t;
 
   static CalifaProc* gProc;
   void registerNewHistograms();

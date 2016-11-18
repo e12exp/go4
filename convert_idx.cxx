@@ -31,16 +31,16 @@ static crystal_pos_idx_t febex2crystal(califa_febex_idx_t i)
   uint8_t theta_idx=0;
   uint8_t phi_idx  =0;
   
-  uint8_t fbx_sfp=std::get<0>(i);
+  uint8_t fbx_sfp=GET_SFP(i);
   assert(fbx_sfp==0);
-  uint8_t fbx_mod=std::get<1>(i);
+  uint8_t fbx_mod=GET_MOD(i);
   petal_idx+=fbx_mod/4;
   theta_idx+=4*(fbx_mod%4);
-  uint8_t fbx_ch =std::get<2>(i);
+  uint8_t fbx_ch =GET_CH(i);
   theta_idx+=thetamap[fbx_ch];
   phi_idx+=phimap[fbx_ch];
 
-  return std::make_tuple(petal_idx, phi_idx, theta_idx);
+  return std::make_tuple(CalifaParser::subEventIdxType::petalIdx, petal_idx, phi_idx, theta_idx);
 }
 
 std::map<califa_febex_idx_t, crystal_pos_idx_t> init_febex2crystal()
@@ -50,11 +50,11 @@ std::map<califa_febex_idx_t, crystal_pos_idx_t> init_febex2crystal()
     for (uint8_t mod=0; mod<8; mod++)
       for (uint8_t ch=0; ch<16; ch++)
 	{
-	  auto fbx_idx=std::make_tuple(sfp, mod, ch);
+	  auto fbx_idx=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx, sfp, mod, ch);
 	  r[fbx_idx]=febex2crystal(fbx_idx);
 	  /*	  printf("fbx %d %d %d - > crystal %d %d %d",
-		 std::get<0>(fbx_idx), std::get<1>(fbx_idx), std::get<2>(fbx_idx),
-		 std::get<0>(r[fbx_idx]), std::get<1>(r[fbx_idx]), std::get<2>(r[fbx_idx])
+		 GET_SFP(fbx_idx), GET_MOD(fbx_idx), GET_CH(fbx_idx),
+		 GET_SFP(r[fbx_idx]), GET_MOD(r[fbx_idx]), GET_CH(r[fbx_idx])
 		 );*/
 	}
   return r;

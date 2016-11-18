@@ -7,8 +7,6 @@
 #include "TObject.h"
 #include "debug.h"
 
-#define IDX_ANY  CalifaParser::module_index_t(255, 255, 255)
-#define IDX_NONE CalifaParser::module_index_t(255, 255, 254)
 
 class CalifaSubprocessor
 {

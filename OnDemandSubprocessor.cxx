@@ -13,7 +13,7 @@ OnDemandSubprocessor::OnDemandSubprocessor(): energy_subprocessors(), trace_subp
 
 }
 
-#define IDX(A, B, C) CalifaParser::module_index_t(A, B, C)
+#define IDX(A, B, C) CalifaParser::module_index_t(CalifaParser::subEventIdxType::fbxChannelIdx, A, B, C)
 
 void OnDemandSubprocessor::processEvent(CalifaParser* p)
 {
@@ -35,6 +35,11 @@ void OnDemandSubprocessor::processEvent(CalifaParser* p)
 
 void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_index_t idx, int tracepoints, bool recurse)
 {
+  static HistogramAxis axis080=	  *createCalEnergyAxis(IDX(0, 8, 0));
+
+  printf("adding %d %d %d %d\n", GET_TYPE(idx), GET_SFP(idx), GET_MOD(idx), GET_CH(idx));
+
+
   auto &evts=*(p->getCalifaEvents());
   
   if (recurse && evts[idx].trace)
@@ -45,27 +50,61 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       && (tracepoints==0 || this->trace_subprocessors.count(idx)))
     return; // everything required was already created
 
-  printf("adding %d %d %d\n", std::get<0>(idx), std::get<1>(idx), std::get<2>(idx));
+  if (GET_TYPE(idx)==CalifaParser::subEventIdxType::petalIdx
+      || GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxModuleIdx)
+    {
+      this->energy_subprocessors[idx]=new HistFillerSubprocessor<TH(1,I), 1>(&idx, &axis_sum_cal_en);
+      
+      if (GET_TYPE(idx)==CalifaParser::subEventIdxType::petalIdx)
+	{
+	  static HistogramAxis en2_axis[]={axis_sum_cal_en, axis080};
+	  CalifaParser::module_index_t idxes[2]={idx, IDX(0, 8, 0)};
+	  new HistFillerSubprocessor<TH(2,I), 2>(idxes, en2_axis, 16);
+	  if (GET_PETAL(idx)==0)
+	    {
+	      	  static HistogramAxis en2_axis[]={axis_sum_cal_en, axis_sum_cal_en};
+		  CalifaParser::module_index_t idxes[2]={idx, std::make_tuple(CalifaParser::subEventIdxType::petalIdx, 1, 254, 254)};
+		  new HistFillerSubprocessor<TH(2,I), 2>(idxes, en2_axis, 16);
+	    }
+	}
+
+      return;
+    }
+
+
   if (recurse)
     {
-      // for (uint8_t sfp=0; sfp<=std::get<0>(idx); sfp++)
+
+      // for (uint8_t sfp=0; sfp<=GET_SFP(idx); sfp++)
       {
 	// add one channel for each module before, so the channel dirs get created in right order
-	uint8_t sfp=std::get<0>(idx);
-	for (uint8_t module=0; module<std::get<1>(idx); module++)
+	uint8_t sfp=GET_SFP(idx);
+	for (uint8_t module=0; module<GET_MOD(idx); module++)
 	  {
-	    CalifaParser::module_index_t i=std::make_tuple(sfp, module, (uint8_t)0);
+	    CalifaParser::module_index_t i=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx, sfp, module, (uint8_t)0);
+	    // petal
+	    {
+	      auto i2=CalifaParser::toIdxType(CalifaParser::subEventIdxType::petalIdx, i);
+	      printf("--->adding %d %d %d %d\n", GET_TYPE(i2), GET_SFP(i2), GET_MOD(i2), GET_CH(i2));
+	      this->addChannel(p, i2, tracepoints);
+	    }
+	    // febex mod
+	    {
+	      auto i2=CalifaParser::toIdxType(CalifaParser::subEventIdxType::fbxModuleIdx, i);
+	      printf("--->adding %d %d %d %d\n", GET_TYPE(i2), GET_SFP(i2), GET_MOD(i2), GET_CH(i2));
+	      this->addChannel(p, i2, tracepoints);
+	    }
 	    this->addChannel(p, i, tracepoints);
 	  }
       }
       
       {
 	// add previous channels for current module for correct order
-	uint8_t sfp= std::get<0>(idx);
-	uint8_t module=std::get<1>(idx);
-	for (uint8_t ch=0; ch<std::get<2>(idx); ch++)
+	uint8_t sfp= GET_SFP(idx);
+	uint8_t module=GET_MOD(idx);
+	for (uint8_t ch=0; ch<GET_CH(idx); ch++)
 	  {
-	    CalifaParser::module_index_t i=std::make_tuple(sfp, module, ch);
+	    CalifaParser::module_index_t i=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx, sfp, module, ch);
 	    this->addChannel(p, i, tracepoints);
 	  }
       }
@@ -119,8 +158,8 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       new HistFillerSubprocessor<TH(1,I), 1>(&idx, &axis_lim_energy);
       //new HistFillerSubprocessor<TH(1,I), 1>(&idx, &axis_full_energy);
       ldbg("created a new energy processor for %d:%d:%d.\n", 
-	   std::get<0>(idx), std::get<1>(idx), 
-	   std::get<2>(idx));
+	   GET_SFP(idx), GET_MOD(idx), 
+	   GET_CH(idx));
       //new HistFillerSubprocessor<TH(2,I), 1>(&idx, qpid_axis, 64);
   
       if (HistogramAxis* ha=createCalEnergyAxis(idx))
