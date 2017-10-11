@@ -35,7 +35,7 @@ void OnDemandSubprocessor::processEvent(CalifaParser* p)
 
 void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_index_t idx, int tracepoints, bool recurse)
 {
-  static HistogramAxis axis080=	  *createCalEnergyAxis(IDX(0, 8, 0));
+  //  static HistogramAxis axis080=	  *createCalEnergyAxis(IDX(0, 8, 0));
 
   printf("adding %d %d %d %d\n", GET_TYPE(idx), GET_SFP(idx), GET_MOD(idx), GET_CH(idx));
 
@@ -57,9 +57,9 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       
       if (GET_TYPE(idx)==CalifaParser::subEventIdxType::petalIdx)
 	{
-	  static HistogramAxis en2_axis[]={axis_sum_cal_en, axis080};
+	  //	  static HistogramAxis en2_axis[]={axis_sum_cal_en, axis080};
 	  CalifaParser::module_index_t idxes[2]={idx, IDX(0, 8, 0)};
-	  new HistFillerSubprocessor<TH(2,I), 2>(idxes, en2_axis, 16);
+	  //new HistFillerSubprocessor<TH(2,I), 2>(idxes, en2_axis, 16);
 	  if (GET_PETAL(idx)==0)
 	    {
 	      	  static HistogramAxis en2_axis[]={axis_sum_cal_en, axis_sum_cal_en};

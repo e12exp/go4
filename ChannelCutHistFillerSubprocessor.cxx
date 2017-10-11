@@ -1,4 +1,8 @@
 #include "ChannelCutHistFillerSubprocessor.h"
+
+template class ChannelCutHistFillerSubprocessor<TH(1,I),1>;
+template class ChannelCutHistFillerSubprocessor<TH(2,I),1>;
+
 template<class HistType, int nAxis, int nIdx>
 ChannelCutHistFillerSubprocessor<HistType, nAxis, nIdx>::
 ChannelCutHistFillerSubprocessor( CalifaParser::module_index_t idx[nIdx],
@@ -14,5 +18,3 @@ ChannelCutHistFillerSubprocessor( CalifaParser::module_index_t idx[nIdx],
   
 }
 
-template class ChannelCutHistFillerSubprocessor<TH(1,I),1>;
-template class ChannelCutHistFillerSubprocessor<TH(2,I),1>;

@@ -20,3 +20,4 @@ low_en
 core
 *.txt
 *.png
+.gdb_history
