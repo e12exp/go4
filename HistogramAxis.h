@@ -43,6 +43,8 @@ DECLARE_EVNT(tot);
 DECLARE_EVNT(num_pileup);
 DECLARE_EVNT(num_discarded);
 
+
+
 DECLARE_HISTAXIS(full, energy, 65536, -32768, 32768);
 DECLARE_HISTAXIS(lim, energy, 4000, 0, 4000);
 
@@ -55,6 +57,9 @@ DECLARE_HISTAXIS(rebinned512, n_s, 65536/512, -32768, 32768);
 DECLARE_HISTAXIS(full, tot, 65536, -32768, 32768);
 DECLARE_HISTAXIS(full, num_pileup, 100, 0, 100);
 DECLARE_HISTAXIS(full, num_discarded, 100, 0, 100);
+
+
+
 #if NEED_BODIES //////////////////////////////////////////////////////
 
 double HistogramAxisHandlers_evnt_sfp0_module_dual(CalifaParser* parser,
@@ -140,13 +145,20 @@ double HistogramAxisHandlers_evnt_pulser(CalifaParser* parser, CalifaParser::mod
   return 1+(5000<en) ;
 }
 
+double HistogramAxisHandlers_evnt_abs_mod(CalifaParser* parser, CalifaParser::module_index_t* idx)
+{
+  if (!idx)
+    return NAN;
+  return GET_SFP(*idx)*20+GET_MOD(*idx);
+}
+
+
 double HistogramAxisHandlers_evnt_ts_diff(CalifaParser* parser, CalifaParser::module_index_t* idx)
 {
   static const CalifaParser::module_index_t idx0=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx, 0, 0, 0);
   if (!idx || !parser->getCalifaEvents()->count(*idx) || !parser->getCalifaEvents()->count(idx0))
     return NAN;
   uint64_t ts0, ts1;
-
   {
     auto ei=parser->getCalifaEvents()->at(*idx);
     if (!ei.evnt)
@@ -201,6 +213,8 @@ DECLARE_HISTAXIS(fbx,channel,     16, 0, 16);
 DECLARE_HISTAXIS(mesytec,PA_ch,   16, 1, 17);
 DECLARE_HISTAXIS(coinc,pulser, 3, 0, 3);
 DECLARE_HISTAXIS(coinc,ts_diff, 420*2, -420, 420);
+DECLARE_HISTAXIS(coinc,abs_mod, 80, 0, 80);
+
 DECLARE_HISTAXIS(fbx, sfp0_module_dual, 20, 0, 20);
 DECLARE_HISTAXIS(sum,cal_en, 16000, 0, 16000);
 //DECLARE_HISTAXIS2(weight_one, "weight_one",1,0,1,HistogramAxisHandlers_evnt_one, 1) ;

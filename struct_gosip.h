@@ -25,9 +25,9 @@ extern "C"
 typedef struct gosip_sub_header
 {
   uint8_t header_size;
-  uint8_t trigger;
-  uint8_t module_id :6 _PACKED;
-  uint8_t sfp_id    :2 _PACKED;
+  uint8_t trigger :4 _PACKED;
+  uint8_t sfp_id  :4 _PACKED;
+  uint8_t module_id;
   uint8_t submemory_id;
   uint32_t data_size   _PACKED;
 }  gosip_sub_header_t;

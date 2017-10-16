@@ -37,6 +37,27 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
 {
   //  static HistogramAxis axis080=	  *createCalEnergyAxis(IDX(0, 8, 0));
 
+  static HistogramAxis qpid_axis[]={axis_full_n_f, axis_full_n_s};
+  static HistogramAxis en2_axis[]={axis_full_energy, axis_full_energy};
+  static HistogramAxis module_channel[]={axis_fbx_sfp0_module, axis_fbx_channel};
+  static HistogramAxis module_mchannel[]={axis_fbx_sfp0_module, axis_mesytec_PA_ch};
+  static HistogramAxis module_ts_diff[]={axis_coinc_abs_mod, axis_coinc_ts_diff};
+  static HistogramAxis module_pulser[]={axis_fbx_sfp0_module, axis_coinc_pulser};
+
+  static int globals_initialized;
+  
+  if (!globals_initialized)
+    {
+      auto any=IDX_ANY;
+      // first energy histogram created, create now overview histogram
+      new HistFillerSubprocessor<TH(1,I), 1>(&any, &axis_coinc_ts_diff);
+      new HistFillerSubprocessor<TH(2,I), 1>(&any, module_channel);
+      new HistFillerSubprocessor<TH(2,I), 1>(&any, module_mchannel);
+      new HistFillerSubprocessor<TH(2,I), 1>(&any, module_ts_diff);
+      new HistFillerSubprocessor<TH(2,I), 1>(&any, module_pulser);
+      globals_initialized++;
+    }
+      
   printf("adding %d %d %d %d\n", GET_TYPE(idx), GET_SFP(idx), GET_MOD(idx), GET_CH(idx));
 
 
@@ -111,12 +132,6 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
     }
     
 
-  static HistogramAxis qpid_axis[]={axis_full_n_f, axis_full_n_s};
-  static HistogramAxis en2_axis[]={axis_full_energy, axis_full_energy};
-  static HistogramAxis module_channel[]={axis_fbx_sfp0_module, axis_fbx_channel};
-  static HistogramAxis module_mchannel[]={axis_fbx_sfp0_module, axis_mesytec_PA_ch};
-  static HistogramAxis module_ts_diff[]={axis_fbx_sfp0_module_dual, axis_coinc_ts_diff};
-  static HistogramAxis module_pulser[]={axis_fbx_sfp0_module, axis_coinc_pulser};
 
   std::list<CalifaParser::module_index_t> l={IDX(0, 0, 1)};
   static std::map<CalifaParser::module_index_t, std::list<CalifaParser::module_index_t> > correlations=
@@ -138,17 +153,6 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
 
   if (!this->energy_subprocessors.count(idx))
     {
-      if (this->energy_subprocessors.size()==0)
-	{
-	  auto any=IDX_ANY;
-	  // first energy histogram created, create now overview histogram
-	  new HistFillerSubprocessor<TH(2,I), 1>(&any, module_channel);
-	  new HistFillerSubprocessor<TH(2,I), 1>(&any, module_mchannel);
-	  new HistFillerSubprocessor<TH(2,I), 1>(&any, module_ts_diff);
-	  new HistFillerSubprocessor<TH(2,I), 1>(&any, module_pulser);
-
-	}
-  
   
       //we have found an event without an energy histogram,
       //create one. 

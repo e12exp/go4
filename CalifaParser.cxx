@@ -180,6 +180,7 @@ int CalifaParser::parseGosip(uint32_t *&p,
   //linfo("gosip first word : @%lx is %lx\n", p, *p);
   //linfo("gosip second word: @%lx is %lx\n", p+1, *(p+1));
   gosip_sub_header_t* gosip_sub=(gosip_sub_header_t*)(p);
+
   p += sizeof(gosip_sub_header_t)/4;
   //ldbg("gosip: l_cha %d\n ", gosip_sub->submemory_id);
   if (gosip_sub->header_size != 0x34) {
@@ -189,6 +190,8 @@ int CalifaParser::parseGosip(uint32_t *&p,
     lerror("gosip header size is wrong = %x \n", 
     	   gosip_sub->header_size);
   }
+
+  //  printf("%x-> %x.%x\n", *(uint32_t*)gosip_sub, gosip_sub->sfp_id, gosip_sub->module_id);
   next=p+gosip_sub->data_size/4;
   //linfo("calculated next pointer to be")
   //on error, skip to next submodule
