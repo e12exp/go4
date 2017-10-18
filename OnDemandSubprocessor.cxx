@@ -35,6 +35,9 @@ void OnDemandSubprocessor::processEvent(CalifaParser* p)
 
 void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_index_t idx, int tracepoints, bool recurse)
 {
+  if (GET_TYPE(idx)!=CalifaParser::subEventIdxType::fbxChannelIdx)
+    return; //other indices are not ready yet
+  
   //  static HistogramAxis axis080=	  *createCalEnergyAxis(IDX(0, 8, 0));
 
   static HistogramAxis qpid_axis[]={axis_full_n_f, axis_full_n_s};
