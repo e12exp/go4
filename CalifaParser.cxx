@@ -251,7 +251,7 @@ int CalifaParser::parseEvent(uint32_t *&pl_tmp,
       evnt->timestamp = *pl_tmp++;
       evnt->timestamp |= ((uint64_t)*pl_tmp++) << 32;
       memcpy(evnt->cfd_samples, pl_tmp, 8); pl_tmp+=2;
-      evnt->overflow = *pl_tmp && 0xffffff;
+      evnt->overflow = *pl_tmp & 0xffffff;
       evnt->self_triggered = *pl_tmp++ >> 24;
       evnt->num_pileup = *pl_tmp & 0xffff;
       evnt->num_discarded = *pl_tmp++ >> 16;

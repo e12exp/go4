@@ -16,7 +16,7 @@
 #include "CalifaParam.h"
 
 #include "Riostream.h"
-
+using namespace std;
 //***********************************************************
 CalifaParam::CalifaParam() : TGo4Parameter("Parameter")
 {

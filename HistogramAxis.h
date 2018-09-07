@@ -156,9 +156,10 @@ double HistogramAxisHandlers_evnt_abs_mod(CalifaParser* parser, CalifaParser::mo
 double HistogramAxisHandlers_evnt_ts_diff(CalifaParser* parser, CalifaParser::module_index_t* idx)
 {
   static const CalifaParser::module_index_t idx0=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx, 0, 0, 0);
-  if (!idx || !parser->getCalifaEvents()->count(*idx) || !parser->getCalifaEvents()->count(idx0))
+  if (!idx || !parser->getCalifaEvents()->count(*idx)   || !parser->getCalifaEvents()->count(idx0))
     return NAN;
-  uint64_t ts0, ts1;
+  static uint64_t ts0;
+  uint64_t ts1;
   {
     auto ei=parser->getCalifaEvents()->at(*idx);
     if (!ei.evnt)
@@ -171,8 +172,8 @@ double HistogramAxisHandlers_evnt_ts_diff(CalifaParser* parser, CalifaParser::mo
     auto ei=parser->getCalifaEvents()->at(idx0);
     if (!ei.evnt)
       return NAN;
-    if (ei.evnt->energy < 5000)
-      return NAN;
+    //if (ei.evnt->energy < 5000)
+    //  return NAN;
 
     ts0= ei.evnt->timestamp;
   }
