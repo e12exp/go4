@@ -78,13 +78,17 @@ int CalifaParser::parse(uint32_t* p, uint32_t len)
 {
   //linfo("parsing %d words starting from %lx\n", len, p);
   uint32_t* p_end=p+len;
-  //  if (parseTimestamp(p, p_end)<0) //ignore positive errors here.
-  //  return -1; //a timestamp with a bad magic number
+  if (parseTimestamp(p, p_end)<0) //ignore positive errors here.
+    return -1; //a timestamp with a bad magic number
+  linfo("after wrts: @%lx is %lx\n", p, *p);
+
   if ((*p) == 0xbad00bad)
     {
       linfo("found event marked as bad, ignored it.\n");
       return 1;
     }
+
+
   int goodheaders=0, badgosipheaders=0, badeventheaders=0;
   this->reset();
   while(p<p_end)
@@ -107,7 +111,7 @@ int CalifaParser::parse(uint32_t* p, uint32_t len)
       p=next;
     }
   this->subevent_count++;
-  ldbg("parsing of subeven %d completed successfully with %d good and %d / %d  bad gosip/event headers!\n",
+  ldbg("parsing of subevent %d completed successfully with %d good and %d / %d  bad gosip/event headers!\n",
 	this->subevent_count, goodheaders, badgosipheaders, badeventheaders);
   return goodheaders==0;
 }
@@ -141,6 +145,7 @@ int CalifaParser::parseTimestamp(uint32_t *&p, uint32_t* p_end)
   linfo("timestamp found with system id 0x%x\n", system_id);
   while(data < p_end && *data++ == system_id)
     {
+      data++; //only increment if loop condition holds. 
       switch(*data & 0xffff0000)
 	{
 	case 0x00f70000:
@@ -156,6 +161,7 @@ int CalifaParser::parseTimestamp(uint32_t *&p, uint32_t* p_end)
 	  ts->whiterabbit |= (*data++ & 0xffff) << 16;
 	  ts->whiterabbit |= (uint64_t)(*data++ & 0xffff) << 32;
 	  ts->whiterabbit |= (uint64_t)(*data++ & 0xffff) << 48;
+
 	  //			printf("WR TS for 0x%x: 0x%016llx\n", system_id, ts->whiterabbit);
 	  break;
 	default:
@@ -177,8 +183,8 @@ int CalifaParser::parseTimestamp(uint32_t *&p, uint32_t* p_end)
 int CalifaParser::parseGosip(uint32_t *&p,
 			     eventinfo_t* &ei, uint32_t* &next)
 {
-  //linfo("gosip first word : @%lx is %lx\n", p, *p);
-  //linfo("gosip second word: @%lx is %lx\n", p+1, *(p+1));
+  linfo("gosip first word : @%lx is %lx\n", p, *p);
+  linfo("gosip second word: @%lx is %lx\n", p+1, *(p+1));
   gosip_sub_header_t* gosip_sub=(gosip_sub_header_t*)(p);
 
   p += sizeof(gosip_sub_header_t)/4;

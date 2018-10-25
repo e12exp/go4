@@ -89,6 +89,7 @@ class CalifaParser
   static const uint32_t _SYSIDS[];
   static const std::set<uint32_t> SYSIDS;
   static const uint32_t FEBEX_SYSTEM_ID=0x400;
+  static const uint32_t AMS_SYSTEM_ID=  0x200;
   static const uint32_t N_CHA=16;
   eventmap_t eventmap;
   tsmap_t tsmap;
