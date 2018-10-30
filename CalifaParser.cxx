@@ -143,7 +143,7 @@ int CalifaParser::parseTimestamp(uint32_t *&p, uint32_t* p_end)
   if (!CalifaParser::SYSIDS.count(system_id))
     return 1;
   linfo("timestamp found with system id 0x%x\n", system_id);
-  while(data < p_end && *data++ == system_id)
+  while(data < p_end && *data == system_id)
     {
       data++; //only increment if loop condition holds. 
       switch(*data & 0xffff0000)
