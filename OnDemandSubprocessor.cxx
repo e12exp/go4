@@ -60,7 +60,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       new HistFillerSubprocessor<TH(2,I), 1>(&any, module_pulser);
       globals_initialized++;
     }
-      
+  
   printf("adding %d %d %d %d\n", GET_TYPE(idx), GET_SFP(idx), GET_MOD(idx), GET_CH(idx));
 
 

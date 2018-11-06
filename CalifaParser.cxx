@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "debug.h"
+#include <list>
 const uint32_t CalifaParser::_SYSIDS[]= {0x100, 0x200, 0x400};
 const std::set<uint32_t> CalifaParser::SYSIDS(_SYSIDS, _SYSIDS+3);
 
@@ -19,6 +20,8 @@ void CalifaParser::reset()
       if (it->second.evnt)
 	free(it->second.evnt);
   this->eventmap.clear();
+
+  
 }
 
 int CalifaParser::parseGo4(TGo4MbsEvent* fInput)
@@ -100,10 +103,11 @@ int CalifaParser::parse(uint32_t* p, uint32_t len)
 	p++;
       //ldbg("pointer after skipped padding: %lx\n", p);
       eventinfo_t* ei=NULL;
-      if (this->parseGosip(p, ei, next))
+      auto idx=this->parseGosip(p, ei, next);
+      if (idx==IDX_INVALID)
 	  badgosipheaders++;
 	else
-	  if (this->parseEvent(p, ei))
+	  if (this->parseEvent(p, ei, idx))
 	    badeventheaders++;
 	  else
 	    goodheaders++;
@@ -180,8 +184,8 @@ int CalifaParser::parseTimestamp(uint32_t *&p, uint32_t* p_end)
   return 1;
 }
 
-int CalifaParser::parseGosip(uint32_t *&p,
-			     eventinfo_t* &ei, uint32_t* &next)
+CalifaParser::module_index_t CalifaParser::parseGosip(uint32_t *&p,
+						      eventinfo_t* &ei, uint32_t* &next)
 {
   linfo("gosip first word : @%lx is %lx\n", p, *p);
   linfo("gosip second word: @%lx is %lx\n", p+1, *(p+1));
@@ -212,7 +216,7 @@ int CalifaParser::parseGosip(uint32_t *&p,
       )
     {
       //ldbg("gosip: ignored bad event\n");
-      return 1;
+      return IDX_INVALID;
     }
   //linfo("found a good event\n");
   module_index_t idx=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx,
@@ -238,12 +242,13 @@ int CalifaParser::parseGosip(uint32_t *&p,
       ei->evnt=NULL;
     }
   ei->trace=NULL;
-  return 0;
+  return idx;
 }
 
 
 int CalifaParser::parseEvent(uint32_t *&pl_tmp,
-			     eventinfo_t* ei)
+			     eventinfo_t* ei,
+			     CalifaParser::module_index_t idx)
 {
   event_t* evnt=(event_t*)malloc(sizeof(event_t));
   uint32_t processed_size;
@@ -292,7 +297,7 @@ int CalifaParser::parseEvent(uint32_t *&pl_tmp,
       lerror(" event: Invalid event magic number: 0x%04x\n", evnt->magic);
       free(evnt);
       ei->evnt=NULL;
-      return 1;
+      return 10;
     }
 
 
@@ -363,6 +368,25 @@ int CalifaParser::parseEvent(uint32_t *&pl_tmp,
     {
       //lerror("No traces found!\n");
     }
+
+  const std::vector<subEventIdxType> virtevent_types={petalIdx};
+
+  for (auto& st: virtevent_types)
+    {
+      auto vidx=CalifaParser::toIdxType(st, idx);
+      if (vidx!=IDX_INVALID)
+	{
+	  if (!eventmap.count(vidx))
+	    {
+	      auto vei=&(eventmap[vidx]);
+	      memset(vei, 0, sizeof(*vei));
+	      memset(&(virtevents[vidx]), 0, sizeof(virtevents[vidx]));
+	      vei->evnt=&(virtevents[vidx]);
+	    }
+	  eventmap[vidx]+=evnt;
+	}
+    }
+  
   if (skip)
     free(evnt);
 

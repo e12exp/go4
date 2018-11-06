@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #ifndef _PACKED
-#define _PACKED  __attribute__ ((packed))
+#define _PACKED  //__attribute__ ((packed))
 #endif
 
 extern "C"
@@ -42,8 +42,8 @@ typedef struct trace_head
   uint16_t magic_2bad _PACKED;
   uint16_t type _PACKED;
   union {
-    int16_t s[0];
-    uint16_t u[0];
+    int16_t s[1];
+    uint16_t u[1];
   } points _PACKED;
 
 }

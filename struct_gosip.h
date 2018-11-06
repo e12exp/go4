@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #ifndef _PACKED
-#define _PACKED  __attribute__ ((packed))
+#define _PACKED  //__attribute__ ((packed))
 #endif
 
 typedef struct gosip_header

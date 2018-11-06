@@ -18,6 +18,7 @@
 #define IDX_ANY  CalifaParser::module_index_t(CalifaParser::subEventIdxType::fbxChannelIdx, 255, 255, 255)
 #define IDX_NONE CalifaParser::module_index_t(CalifaParser::subEventIdxType::fbxChannelIdx, 255, 255, 254)
 #define IDX_CHANNEL_WILDCARD 254
+#define IDX_INVALID CalifaParser::module_index_t(CalifaParser::subEventIdxType::fbxChannelIdx, 255, 255, 253)
 
 #define GET_TYPE(idx) std::get<0>(idx)
 #define GET_SFP(idx)  std::get<1>(idx)
@@ -50,6 +51,9 @@ class CalifaParser
   {
     auto from=GET_TYPE(idx);
     module_index_t midx;
+    auto sfp=GET_SFP(idx);
+    auto mod=GET_MOD(idx);
+    char petalIndex;
     assert(st>from);
     switch(st)
       {
@@ -60,14 +64,40 @@ class CalifaParser
 	midx=std::make_tuple(st, GET_SFP(idx), GET_MOD(idx),  IDX_WILDCARD);
 	break;
       case petalIdx:
-	midx=std::make_tuple(st, GET_SFP(idx)*4+GET_MOD(idx)/4, IDX_WILDCARD,  IDX_WILDCARD);
+	//midx=std::make_tuple(st, GET_SFP(idx)*4+GET_MOD(idx)/4, IDX_WILDCARD,  IDX_WILDCARD);
+	// per https://elog.gsi.de/land/r3b2018/180906_172916/text4757-1-1.png.png
+	// and https://elog.gsi.de/land/r3b2018/35
+	if (sfp==0)
+	  {
+	    if (mod<4)       //TUDA 1 : 1
+	      petalIndex=1;
+	    else if (mod<8)  //TUDA 2 : 2
+	      petalIndex=2;
+	    else if (mod<16) // USC 1-2: 3-4 -> 3 (double petal)
+	      petalIndex=3;
+	    else
+	      return IDX_INVALID;
+	  }
+	else if (sfp==1)
+	  {
+	    if (mod<4)       // USC 3: 5
+	      petalIndex=5;
+	    if (mod<12)      // LU1-2: 6-7 -> 6
+	      petalIndex=6;
+	    else
+	      return IDX_INVALID;
+	  }
+	else
+	  return IDX_INVALID;
+	midx=std::make_tuple(st, petalIndex, IDX_WILDCARD,  IDX_WILDCARD);
 	break;
       default:
 	assert(0);
-      }
+	return IDX_INVALID;
+     }
     return midx;
   }
-
+  
   typedef std::map<module_index_t, eventinfo_t> eventmap_t;
   typedef std::map<uint32_t, timestamp_t>  tsmap_t;
 
@@ -92,7 +122,12 @@ class CalifaParser
   static const uint32_t AMS_SYSTEM_ID=  0x200;
   static const uint32_t N_CHA=16;
   eventmap_t eventmap;
+
+  std::map<module_index_t, event_t> virtevents; // persistant allocation for non-fbx-channel events
+  
+
   tsmap_t tsmap;
+  
   uint32_t lastSysID;
   uint32_t subevent_count;
   //immediate storage:
@@ -100,8 +135,8 @@ class CalifaParser
   //gosip_header_t gossip;
   //gosip_sub_header_t gosip_sub;
   int parseTimestamp(uint32_t *&p, uint32_t* p_end);
-  int parseGosip(uint32_t* &p, eventinfo_t*&, uint32_t*&);
-  int parseEvent(uint32_t *&pl_tmp, eventinfo_t* ei);
+  module_index_t parseGosip(uint32_t* &p, eventinfo_t*&, uint32_t*&);
+  int parseEvent(uint32_t *&pl_tmp, eventinfo_t* ei, module_index_t idx);
   void reset();
 };
 
