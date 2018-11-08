@@ -35,9 +35,13 @@ void OnDemandSubprocessor::processEvent(CalifaParser* p)
 
 void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_index_t idx, int tracepoints, bool recurse)
 {
-  if (GET_TYPE(idx)!=CalifaParser::subEventIdxType::fbxChannelIdx)
-    return; //other indices are not ready yet
-  
+  //if (GET_TYPE(idx)!=CalifaParser::subEventIdxType::fbxChannelIdx)
+  //  return; //other indices are not ready yet
+
+  if (idx==IDX_INVALID)
+    return;
+  if (GET_TYPE(idx)!=CalifaParser::subEventIdxType::fbxChannelIdx && recurse)
+    return;
   //  static HistogramAxis axis080=	  *createCalEnergyAxis(IDX(0, 8, 0));
 
   static HistogramAxis qpid_axis[]={axis_full_n_f, axis_full_n_s};
@@ -61,7 +65,8 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       globals_initialized++;
     }
   
-  printf("adding %d %d %d %d\n", GET_TYPE(idx), GET_SFP(idx), GET_MOD(idx), GET_CH(idx));
+  printf("adding %d %d %d %d (recurse=%d)\n", GET_TYPE(idx), GET_SFP(idx), GET_MOD(idx), GET_CH(idx),
+	 recurse);
 
 
   auto &evts=*(p->getCalifaEvents());
@@ -74,8 +79,9 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       && (tracepoints==0 || this->trace_subprocessors.count(idx)))
     return; // everything required was already created
 
-  if (GET_TYPE(idx)==CalifaParser::subEventIdxType::petalIdx
-      || GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxModuleIdx)
+  
+  if (0 && (GET_TYPE(idx)==CalifaParser::subEventIdxType::petalIdx
+	    || GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxModuleIdx))
     {
       this->energy_subprocessors[idx]=new HistFillerSubprocessor<TH(1,I), 1>(&idx, &axis_sum_cal_en);
       
@@ -96,30 +102,32 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
     }
 
 
-  if (recurse)
+  if (recurse && GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxChannelIdx)
     {
 
       // for (uint8_t sfp=0; sfp<=GET_SFP(idx); sfp++)
       {
 	// add one channel for each module before, so the channel dirs get created in right order
-	uint8_t sfp=GET_SFP(idx);
-	for (uint8_t module=0; module<GET_MOD(idx); module++)
-	  {
-	    CalifaParser::module_index_t i=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx, sfp, module, (uint8_t)0);
-	    // petal
+	for (uint8_t sfp=0; sfp<=GET_SFP(idx); sfp++)
+	  for (uint8_t module=0; module<GET_MOD(idx); module++)
 	    {
-	      auto i2=CalifaParser::toIdxType(CalifaParser::subEventIdxType::petalIdx, i);
-	      printf("--->adding %d %d %d %d\n", GET_TYPE(i2), GET_SFP(i2), GET_MOD(i2), GET_CH(i2));
-	      this->addChannel(p, i2, tracepoints);
+	      CalifaParser::module_index_t i=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx,
+							     sfp, module,	(uint8_t)0);
+	      // petal
+	      {
+		auto i2=CalifaParser::toIdxType(CalifaParser::subEventIdxType::petalIdx, i);
+		printf("--->adding %d %d %d %d\n", GET_TYPE(i2), GET_SFP(i2), GET_MOD(i2), GET_CH(i2));
+		this->addChannel(p, i2, tracepoints);
+	      }
+	      // febex mod
+	      if (0)
+		{
+		  auto i2=CalifaParser::toIdxType(CalifaParser::subEventIdxType::fbxModuleIdx, i);
+		  printf("--->adding %d %d %d %d\n", GET_TYPE(i2), GET_SFP(i2), GET_MOD(i2), GET_CH(i2));
+		  this->addChannel(p, i2, tracepoints);
+		}
+	      this->addChannel(p, i, tracepoints);
 	    }
-	    // febex mod
-	    {
-	      auto i2=CalifaParser::toIdxType(CalifaParser::subEventIdxType::fbxModuleIdx, i);
-	      printf("--->adding %d %d %d %d\n", GET_TYPE(i2), GET_SFP(i2), GET_MOD(i2), GET_CH(i2));
-	      this->addChannel(p, i2, tracepoints);
-	    }
-	    this->addChannel(p, i, tracepoints);
-	  }
       }
       
       {

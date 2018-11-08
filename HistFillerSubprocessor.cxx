@@ -90,12 +90,12 @@ static void appendIdxName(char* buf, size_t totlen, const char* prefix, CalifaPa
 	     GET_CH(idx),
 	     postfix);
   else if (GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxModuleIdx)
-    snprintf(b, len, "%s_%01d_%02d_*%s", 
+    snprintf(b, len, "%s_%01d_%02d*%s", 
 	     prefix,
 	     GET_SFP(idx), GET_MOD(idx),
 	     postfix);
   else if (GET_TYPE(idx)==CalifaParser::subEventIdxType::petalIdx)
-    snprintf(b, len, "%s_petal_%01d_%s", 
+    snprintf(b, len, "%s_petal_%01d%s", 
 	     prefix,
 	     GET_PETAL(idx),
 	     postfix);
@@ -120,7 +120,8 @@ static void appendIdxPath(char* buf, size_t totlen, const char* prefix, CalifaPa
 	     );
   else if (GET_TYPE(idx)==CalifaParser::subEventIdxType::petalIdx)
     snprintf(b, len, "%s/petals/", 
-	     prefix );
+	     prefix//, GET_PETAL(idx)
+	     );
   return;
 }
 

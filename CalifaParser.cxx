@@ -380,8 +380,8 @@ int CalifaParser::parseEvent(uint32_t *&pl_tmp,
 	    {
 	      auto vei=&(eventmap[vidx]);
 	      memset(vei, 0, sizeof(*vei));
-	      memset(&(virtevents[vidx]), 0, sizeof(virtevents[vidx]));
-	      vei->evnt=&(virtevents[vidx]);
+	      vei->evnt=(event_t*)malloc(sizeof(event_t));
+	      memset(vei->evnt, 0, sizeof(event_t));
 	    }
 	  eventmap[vidx]+=evnt;
 	}
