@@ -43,25 +43,27 @@ DECLARE_EVNT(tot);
 DECLARE_EVNT(num_pileup);
 DECLARE_EVNT(num_discarded);
 
+//DECLARE_HISTAXIS(short, wrts, 0, 0x10000)
 
 
-DECLARE_HISTAXIS(full, energy, 65536, -32768, 32768);
-DECLARE_HISTAXIS(lim, energy, 4000, 0, 4000);
+//DECLARE_HISTAXIS2(weight_one, "weight_one",1,0,1,HistogramAxisHandlers_evnt_one, 1) ;
 
-DECLARE_HISTAXIS(full, n_f, 65536, -32768, 32768);
-DECLARE_HISTAXIS(rebinned512, n_f, 65536/512, -32768, 32768);
 
-DECLARE_HISTAXIS(full, n_s, 65536, -32768, 32767);
-DECLARE_HISTAXIS(rebinned512, n_s, 65536/512, -32768, 32768);
-
-DECLARE_HISTAXIS(full, tot, 65536, -32768, 32768);
-DECLARE_HISTAXIS(full, num_pileup, 100, 0, 100);
-DECLARE_HISTAXIS(full, num_discarded, 100, 0, 100);
-
+/*template<HistogramAxis CutAxis, HistogramAxis >
+constexpr HistogramAxis cut(HistogramAxis cutaxis, std::function<bool(double)> cutfun,
+			    HistogramAxis inner)
+{
+  axis_ ## prefix ## _ ## name = {#prefix "_" #name, bins, min, max, HistogramAxisHandlers_evnt_##name, 0};
+  }*/
 
 
 #if NEED_BODIES //////////////////////////////////////////////////////
-
+/*
+double HistogramAxisHandlers_evnt_wrts()
+{
+  
+}
+*/
 double HistogramAxisHandlers_evnt_sfp0_module_dual(CalifaParser* parser,
 						     CalifaParser::module_index_t* idx)
 {
@@ -206,6 +208,20 @@ double HistogramAxisHandlers_evnt_petal_(CalifaParser* parser, CalifaParser::mod
 // axis_fbx_sfp0_module filters for sfp0 and returns the module number.
 // 
 
+
+DECLARE_HISTAXIS(full, energy, 65536, -32768, 32768);
+DECLARE_HISTAXIS(lim, energy, 4000, 0, 4000);
+
+DECLARE_HISTAXIS(full, n_f, 65536, -32768, 32768);
+DECLARE_HISTAXIS(rebinned512, n_f, 65536/512, -32768, 32768);
+
+DECLARE_HISTAXIS(full, n_s, 65536, -32768, 32767);
+DECLARE_HISTAXIS(rebinned512, n_s, 65536/512, -32768, 32768);
+
+DECLARE_HISTAXIS(full, tot, 65536, -32768, 32768);
+DECLARE_HISTAXIS(full, num_pileup, 100, 0, 100);
+DECLARE_HISTAXIS(full, num_discarded, 100, 0, 100);
+
 DECLARE_HISTAXIS(fbx,sfp0_module, 19, 0, 19);
 DECLARE_HISTAXIS(fbx,sfp1_module, 19, 0, 19);
 DECLARE_HISTAXIS(fbx,sfp2_module, 19, 0, 19);
@@ -216,9 +232,11 @@ DECLARE_HISTAXIS(coinc,pulser, 3, 0, 3);
 DECLARE_HISTAXIS(coinc,ts_diff, 420*2, -420, 420);
 DECLARE_HISTAXIS(coinc,abs_mod, 80, 0, 80);
 
+//DECLARE_HISTAXIS(coinc,abs_ch, 80*16, 0, 80*16);
+
 DECLARE_HISTAXIS(fbx, sfp0_module_dual, 20, 0, 20);
 DECLARE_HISTAXIS(sum,cal_en, 16000, 0, 16000);
-//DECLARE_HISTAXIS2(weight_one, "weight_one",1,0,1,HistogramAxisHandlers_evnt_one, 1) ;
+
 
 // calibrated energy is a special case, as the range is dependent on the channel calibration
 HistogramAxis* createCalEnergyAxis(CalifaParser::module_index_t idx)

@@ -46,7 +46,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
 
   static HistogramAxis qpid_axis[]={axis_full_n_f, axis_full_n_s};
   static HistogramAxis en2_axis[]={axis_full_energy, axis_full_energy};
-  static HistogramAxis module_channel[]={axis_fbx_sfp0_module, axis_fbx_channel};
+  static HistogramAxis module_channel[]={axis_coinc_abs_mod, axis_fbx_channel};
   static HistogramAxis module_mchannel[]={axis_fbx_sfp0_module, axis_mesytec_PA_ch};
   static HistogramAxis module_ts_diff[]={axis_coinc_abs_mod, axis_coinc_ts_diff};
   static HistogramAxis module_pulser[]={axis_fbx_sfp0_module, axis_coinc_pulser};
