@@ -50,13 +50,21 @@ SingleHistSubprocessor<T, nAxis>::SingleHistSubprocessor(std::string name,
   //Yeah, TH1D suck for counting, but until ROOT supports templates 
   // (fat chance!) we will stick to this for simplicity
   assert(nAxis==1);
-  HistogramAxis tmp={"tmp", nbins, lowerLimit, upperLimit, NULL, 0};
-  this->h=SingleHistSubprocessorHelper<T, nAxis>::createHist(name, &tmp, 1);
-  assert(histmap.count(name)==0);
-  histmap[name]=this->h;
+  if(histmap.count(name)==0)
+    {
+      HistogramAxis tmp={"tmp", nbins, lowerLimit, upperLimit, NULL, 0};
+      this->h=SingleHistSubprocessorHelper<T, nAxis>::createHist(name, &tmp, 1);
+      histmap[name]=this->h;
+    }
+  else
+    {
+      this->h=dynamic_cast<T*>(histmap[name]);
+      printf("using existing %s\n",  this->h->GetName());
+    }
   this->name=name;
-  this->registerObject(h);
-  }
+  this->registerObject(histmap[name]);
+
+}
 
 
 
@@ -66,10 +74,17 @@ SingleHistSubprocessor<T, nAxis>::SingleHistSubprocessor(std::string name,
 							 HistogramAxis* ha,
 							 int rebin)
 {
-  this->h=SingleHistSubprocessorHelper<T, nAxis>::createHist(name, ha, rebin);
+  if(histmap.count(name)==0)
+    {
+      this->h=SingleHistSubprocessorHelper<T, nAxis>::createHist(name, ha, rebin);
+      histmap[name]=this->h;
+    }
+  else
+    {
+      this->h=dynamic_cast<T*>(histmap[name]);
+      printf("using existing %s\n",  this->h->GetName());
+    }
   this->name=name;
-  assert(histmap.count(name)==0);
-  histmap[name]=this->h;
   printf("created %s\n", this->h->GetName());
   this->registerObject(this->h);
 }
