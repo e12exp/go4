@@ -36,7 +36,9 @@ class CalifaProc
   void RegisterSubprocessor(CalifaSubprocessor* sp);
   static CalifaProc* GetProc()
   {
-    return CalifaProc::gProc;
+    if (!CalifaProc::inst)
+      assert(0);
+    return CalifaProc::inst;
   }
 
   /*  static const uint32_t FEBEX_PROC_ID=1;
@@ -44,21 +46,28 @@ class CalifaProc
   static const uint32_t FEBEX_SUBEVT_TYPE=1;
   */
 
+  static CalifaProc* instance(const char* name, TGo4EventProcessor* go4ep)
+  {
+    if (!CalifaProc::inst)
+      CalifaProc::inst=new CalifaProc(name, go4ep);
+    else
+      CalifaProc::inst->setGo4EP(go4ep);
 
+    return CalifaProc::inst;
+  }
   void registerObject(TObject* o);
  protected:
   typedef CalifaParser::module_index_t module_index_t;
-
-  static CalifaProc* gProc;
   void registerNewHistograms();
+  void setGo4EP(TGo4EventProcessor* go4ep);
   std::map<module_index_t, std::list<CalifaSubprocessor*> > subprocessors;
   std::list<CalifaSubprocessor*> newsubprocessors;
-
+  std::set<TObject*> drawables;
   CalifaParser* parser;
   TGo4EventProcessor* go4ep;
+  static CalifaProc* inst;
 };
 
-extern CalifaProc* gCalifaProc;
 
 
 #endif //TUNPACKPROCESSOR_H

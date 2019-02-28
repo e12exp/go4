@@ -72,6 +72,122 @@ double HistogramAxisHandlers_evnt_sfp0_module_dual(CalifaParser* parser,
   return GET_MOD(*idx)+10*(en>5000 );
 }
 
+double HistogramAxisHandlers_evnt_psp_sum(CalifaParser* parser,
+					  CalifaParser::module_index_t* idx)
+{
+  static const CalifaParser::module_index_t idx1=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx, 0, 0, 6);
+  static const CalifaParser::module_index_t idx2=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx, 0, 3, 6);
+
+  GETPARSER
+  if ( !parser->getCalifaEvents()->count(idx1)) return NAN;
+  auto ei1=parser->getCalifaEvents()->at(idx1);
+  if (!ei1.evnt) return NAN; auto evnt1=ei1.evnt;
+
+  if (!parser->getCalifaEvents()->count(idx2)) return NAN;
+  auto ei2=parser->getCalifaEvents()->at(idx2);
+  if (!ei2.evnt) return NAN; auto evnt2=ei2.evnt;
+  return evnt1->energy+evnt2->energy;
+}
+
+double HistogramAxisHandlers_evnt_psp_diff(CalifaParser* parser,
+					  CalifaParser::module_index_t* idx)
+{
+  static const CalifaParser::module_index_t idx1=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx, 0, 0, 6);
+  static const CalifaParser::module_index_t idx2=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx, 0, 3, 6);
+  static const CalifaParser::module_index_t idx3=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx, 0, 4, 4);
+  static const CalifaParser::module_index_t idx4=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx, 0, 7, 4);
+
+    
+  GETPARSER
+  if ( !parser->getCalifaEvents()->count(idx1)) return NAN;
+  auto ei1=parser->getCalifaEvents()->at(idx1);
+  if (!ei1.evnt) return NAN; auto evnt1=ei1.evnt;
+
+  if (!parser->getCalifaEvents()->count(idx2)) return NAN;
+  auto ei2=parser->getCalifaEvents()->at(idx2);
+  if (!ei2.evnt) return NAN; auto evnt2=ei2.evnt;
+
+  if (!parser->getCalifaEvents()->count(idx3)) return NAN;
+  if (!parser->getCalifaEvents()->count(idx4)) return NAN;
+  return evnt1->energy-evnt2->energy;
+}
+
+
+template<int sys1, int sys2>
+double HistogramAxisHandlers_evnt_wrts_diff(CalifaParser* parser,
+					    CalifaParser::module_index_t* idx)
+{
+  static int64_t last1=0;
+  static int64_t last2=0;
+  
+  auto& tsmap=*(parser->getTimestamps());
+  if (!tsmap.count(sys1) || !tsmap.count(sys2))
+    return NAN;
+
+  int64_t cur1=int64_t(tsmap.at(sys1).whiterabbit);
+  int64_t cur2=int64_t(tsmap.at(sys2).whiterabbit);
+
+  if (cur1==last1 && cur2==last2) //no new event concerning us
+    return NAN;
+
+  if (last1<last2 && cur1 < last2) //no leapfrog
+    return NAN;
+
+  if (last2<last1 && cur2 < last1) //no leapfrog
+    return NAN;
+
+  last1=cur1;
+  last2=cur2;
+  return (double)(cur1-cur2);
+}
+
+#define WRTSDIFF(name, pos, neg) auto HistogramAxisHandlers_evnt_wrts_diff_ ## name =HistogramAxisHandlers_evnt_wrts_diff<pos,neg>;
+
+WRTSDIFF(main_ams, 0x100, 0x300)
+WRTSDIFF(califa_ams, 0x400, 0x300)
+WRTSDIFF(califa_main, 0x400, 0x100)
+
+template<int sys1>
+double HistogramAxisHandlers_evnt_wrts_ms(CalifaParser* parser, CalifaParser::module_index_t* idx)
+{
+  static int64_t last1=0;
+  auto& tsmap=*(parser->getTimestamps());
+  if (!tsmap.count(sys1))
+    return NAN;
+   int64_t cur1=int64_t(tsmap.at(sys1).whiterabbit);
+   if (cur1==last1 ) //no new event concerning us
+    return NAN;
+   last1=cur1;
+   return (double)((cur1/1000000)%100000);
+}
+
+#define WRTSMS(name, sys) auto HistogramAxisHandlers_evnt_wrts_ms_ ## name =HistogramAxisHandlers_evnt_wrts_ms<sys>;
+
+WRTSMS(califa, 0x400)
+WRTSMS(ams, 0x300)
+WRTSMS(main, 0x100)
+
+template<int sys1>
+double HistogramAxisHandlers_evnt_wrts_skip(CalifaParser* parser, CalifaParser::module_index_t* idx)
+{
+  static int64_t last1=0;
+  auto& tsmap=*(parser->getTimestamps());
+  if (!tsmap.count(sys1))
+    return NAN;
+   int64_t cur1=int64_t(tsmap.at(sys1).whiterabbit);
+   int64_t prev1=int64_t(tsmap.at(sys1).whiterabbit_prev);
+   if (cur1==last1 ) //no new event concerning us
+    return NAN;
+   last1=cur1;
+   return (double)(cur1-prev1);
+}
+
+#define WRTSSKIP(name, sys) auto HistogramAxisHandlers_evnt_wrts_skip_ ## name =HistogramAxisHandlers_evnt_wrts_skip<sys>;
+
+WRTSSKIP(califa, 0x400)
+WRTSSKIP(ams, 0x300)
+WRTSSKIP(main, 0x100)
+
 
 template <int sfpNo>
 double HistogramAxisHandlers_evnt_sfp_module(CalifaParser* parser, CalifaParser::module_index_t* idx)
@@ -82,6 +198,18 @@ double HistogramAxisHandlers_evnt_sfp_module(CalifaParser* parser, CalifaParser:
   return GET_MOD(*idx);
 }
 ;
+
+double  HistogramAxisHandlers_evnt_xenergy(CalifaParser* parser, CalifaParser::module_index_t* idx) //energy: missing -> NAN. xenergy: missing -> 0
+{
+  GETPARSER
+    if (!idx || !parser->getCalifaEvents()->count(*idx))
+      return 0.0; 
+  auto ei=parser->getCalifaEvents()->at(*idx);
+  if (!ei.evnt)
+    return 0.0;
+  return ei.evnt->energy;
+}
+
 
 #define SFP_MODULE_ALIAS(n) double (*HistogramAxisHandlers_evnt_sfp ## n ##  _module)(CalifaParser*, CalifaParser::module_index_t*) =\
     HistogramAxisHandlers_evnt_sfp_module<n>
@@ -208,12 +336,31 @@ double HistogramAxisHandlers_evnt_petal_(CalifaParser* parser, CalifaParser::mod
 // axis_fbx_sfp0_module filters for sfp0 and returns the module number.
 // 
 
+DECLARE_HISTAXIS(hack, psp_sum, 30000, 0, 30000);
+DECLARE_HISTAXIS(hack, psp_diff, 30000, -15000, 15000);
+
+DECLARE_HISTAXIS(full, wrts_diff_califa_ams, 2000, -100000, 100000);
+DECLARE_HISTAXIS(full, wrts_diff_main_ams, 2000, -100000, 100000);
+DECLARE_HISTAXIS(full, wrts_diff_califa_main, 2000, -100000, 100000);
+
+DECLARE_HISTAXIS(full, wrts_ms_califa, 100000, 0, 100000);
+DECLARE_HISTAXIS(full, wrts_ms_main, 100000, 0, 100000);
+DECLARE_HISTAXIS(full, wrts_ms_ams, 100000, 0, 100000);
+
+DECLARE_HISTAXIS(full, wrts_skip_califa, 10000, 0, 1000000);
+DECLARE_HISTAXIS(full, wrts_skip_main,   10000, 0, 1000000);
+DECLARE_HISTAXIS(full, wrts_skip_ams,    10000, 0, 1000000);
+
 
 DECLARE_HISTAXIS(full, energy, 65536, -32768, 32768);
-DECLARE_HISTAXIS(lim, energy, 4000, 0, 4000);
+DECLARE_HISTAXIS(lim,  energy, 4000, 0, 4000);
+DECLARE_HISTAXIS(lim, xenergy, 4000, 0, 4000);
 
 DECLARE_HISTAXIS(full, n_f, 65536, -32768, 32768);
 DECLARE_HISTAXIS(rebinned512, n_f, 65536/512, -32768, 32768);
+
+DECLARE_HISTAXIS(lim, n_f, 2500, 0, 10000);
+DECLARE_HISTAXIS(lim, n_s, 2500, 0, 10000);
 
 DECLARE_HISTAXIS(full, n_s, 65536, -32768, 32767);
 DECLARE_HISTAXIS(rebinned512, n_s, 65536/512, -32768, 32768);

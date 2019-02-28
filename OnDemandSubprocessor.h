@@ -7,9 +7,16 @@
 class OnDemandSubprocessor : public CalifaSubprocessor
 {
  public:
-  OnDemandSubprocessor();
+  static OnDemandSubprocessor* instance()
+    {
+      if (!OnDemandSubprocessor::inst)
+	OnDemandSubprocessor::inst=new OnDemandSubprocessor();
+      return OnDemandSubprocessor::inst;
+    }
   virtual void processEvent(CalifaParser* p);
  protected:
+  static OnDemandSubprocessor* inst;
+  OnDemandSubprocessor();
 
   void addChannel(CalifaParser* p, CalifaParser::module_index_t idx, int tracepoints, bool recurse=false);
 

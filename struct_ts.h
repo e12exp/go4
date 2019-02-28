@@ -5,8 +5,9 @@
 
 typedef struct
 {
-	uint64_t	whiterabbit;
-	uint64_t	titris;
+  uint64_t      whiterabbit_prev;
+  uint64_t	whiterabbit;
+  uint64_t	titris;
 } timestamp_t;
 
 #endif

@@ -34,13 +34,22 @@ static void getHistname(char out[NAME_LEN], const char* basename, uint8_t sfp, u
 typedef std::map<std::pair<std::string, Int_t>,
 		 std::function<void(char[NAME_LEN], uint8_t, uint8_t)> > onClickMap_t;
 
+#define kButton3Down 12 // not kButton2Up
 static onClickMap_t onClickMap={
-  {{"fbx_sfp0_module_vs_fbx_channel", LC}, [](auto out, auto m, auto c){getHistname(out, "lim_energy", 0, m, c);} }
-  
+  {{"coinc_abs_mod_vs_fbx_channel", kButton1Down},
+   [](auto out, auto m, auto c){getHistname(out, "lim_energy", m/20, m%20, c);}},
+  {{"coinc_abs_mod_vs_fbx_channel", kButton3Down},
+   [](auto out, auto m, auto c){getHistname(out, "full_energy", m/20, m%20, c);}},
+  {{"coinc_abs_mod_vs_fbx_channel", kWheelUp},
+   [](auto out, auto m, auto c){getHistname(out, "trace_last", m/20, m%20, c);}},
+  {{"coinc_abs_mod_vs_fbx_channel", kWheelDown},
+   [](auto out, auto m, auto c){getHistname(out, "lim_n_f_vs_lim_n_s", m/20, m%20, c);}}
 };
 
 
 typedef void (*ee_t)(THistPainter*, Int_t, Int_t, Int_t);
+
+
 
 void THistPainter::ExecuteEvent(Int_t event, Int_t px, Int_t py)
 {
@@ -52,7 +61,7 @@ void THistPainter::ExecuteEvent(Int_t event, Int_t px, Int_t py)
     }
 
   auto key=std::make_pair(std::string(this->fH->GetName()), event);
-  if (onClickMap.count(key) )
+  if (onClickMap.count(key))
     {
       int mod=floor(gPad->AbsPixeltoX(px));
       int ch= floor(gPad->AbsPixeltoY(py));
@@ -63,6 +72,13 @@ void THistPainter::ExecuteEvent(Int_t event, Int_t px, Int_t py)
       printf("DrawItem(%s) returned %d\n", item, ret);
       return;
     }
+
+  //fix stupid crash
+  if (onClickMap.count(std::make_pair(std::string(this->fH->GetName()), 1))
+      && event==kButton1Motion)
+    return;
+
+  //printf("Calling original THistPainter::ExecuteEvent\n");
   void* ee_void=(dlsym(RTLD_NEXT, "_ZN12THistPainter12ExecuteEventEiii"));
   ee_t* ee_real=reinterpret_cast<ee_t*>(&ee_void);
   if (*ee_real)

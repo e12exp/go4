@@ -19,6 +19,7 @@
 #define IDX_NONE CalifaParser::module_index_t(CalifaParser::subEventIdxType::fbxChannelIdx, 255, 255, 254)
 #define IDX_CHANNEL_WILDCARD 254
 #define IDX_INVALID CalifaParser::module_index_t(CalifaParser::subEventIdxType::fbxChannelIdx, 255, 255, 253)
+#define IDX_EVENT CalifaParser::module_index_t(CalifaParser::subEventIdxType::fbxChannelIdx, 255, 255, 252)
 
 #define GET_TYPE(idx) std::get<0>(idx)
 #define GET_SFP(idx)  std::get<1>(idx)

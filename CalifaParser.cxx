@@ -5,8 +5,9 @@
 #include <stdio.h>
 #include "debug.h"
 #include <list>
-const uint32_t CalifaParser::_SYSIDS[]= {0x100, 0x200, 0x400};
-const std::set<uint32_t> CalifaParser::SYSIDS(_SYSIDS, _SYSIDS+3);
+const uint32_t CalifaParser::_SYSIDS[]= {0x100, 0x200, 0x300, 0x400};
+const std::set<uint32_t> CalifaParser::SYSIDS(_SYSIDS, _SYSIDS+4);
+#define SYSID_CALIFA 0x400
 
 CalifaParser::CalifaParser(): eventmap(), tsmap(), subevent_count(0)
 {
@@ -16,6 +17,7 @@ CalifaParser::CalifaParser(): eventmap(), tsmap(), subevent_count(0)
 
 void CalifaParser::reset()
 {
+  linfo("resetting eventmap.\n");
   for (auto it=this->eventmap.begin(); it!=this->eventmap.end(); ++it)
       if (it->second.evnt)
 	free(it->second.evnt);
@@ -37,6 +39,7 @@ int CalifaParser::parseGo4(TGo4MbsEvent* fInput)
 
   fInput->ResetIterator();
   this->reset();
+  linfo("     CalifaParser::parseGo4 Reset Iterator.\n");
 
   while(auto psubevt = fInput->NextSubEvent())
     {
@@ -44,7 +47,7 @@ int CalifaParser::parseGo4(TGo4MbsEvent* fInput)
       uint32_t subevt_type = psubevt->GetSubtype();
       uint32_t procid = psubevt->GetProcid();
 
-#if CHECK_EVT_TYPE   
+#if 0 //CHECK_EVT_TYPE   
       if(evt_type != FEBEX_EVT_TYPE || subevt_type != FEBEX_SUBEVT_TYPE || procid != FEBEX_PROC_ID)
 	{
 	  linfo("ignored event with evt_type=0x%x, subevent_type=0x%x, procid=0x%x\n", evt_type, subevt_type, procid);
@@ -55,9 +58,10 @@ int CalifaParser::parseGo4(TGo4MbsEvent* fInput)
 
       if (r)
 	{
-	  linfo("     CalifaProc: bad subevent, ignoring rest of curent event.\n");
+	  linfo("     CalifaProc: bad subevent, ignored.\n");
 	  //a bad subevent
-	  return 3;
+	  //	  return 3;
+	  continue;
 	}
       else
 	{
@@ -79,12 +83,19 @@ int CalifaParser::parseGo4(TGo4MbsEvent* fInput)
 //len in words of 4 bytes
 int CalifaParser::parse(uint32_t* p, uint32_t len)
 {
+  if (!p)
+    return -1; 
   //linfo("parsing %d words starting from %lx\n", len, p);
   uint32_t* p_end=p+len;
   if (parseTimestamp(p, p_end)<0) //ignore positive errors here.
     return -1; //a timestamp with a bad magic number
+
+  
   linfo("after wrts: @%lx is %lx\n", p, *p);
 
+  if (getSysID()!=SYSID_CALIFA)
+    return 0; // for other systems, just parse the TS
+  
   if ((*p) == 0xbad00bad)
     {
       linfo("found event marked as bad, ignored it.\n");
@@ -93,7 +104,6 @@ int CalifaParser::parse(uint32_t* p, uint32_t len)
 
 
   int goodheaders=0, badgosipheaders=0, badeventheaders=0;
-  this->reset();
   while(p<p_end)
     {
       uint32_t *next;
@@ -117,7 +127,7 @@ int CalifaParser::parse(uint32_t* p, uint32_t len)
   this->subevent_count++;
   ldbg("parsing of subevent %d completed successfully with %d good and %d / %d  bad gosip/event headers!\n",
 	this->subevent_count, goodheaders, badgosipheaders, badeventheaders);
-  return goodheaders==0;
+  return badgosipheaders+badeventheaders;
 }
 
 CalifaParser::eventmap_t* CalifaParser::getCalifaEvents()
@@ -175,6 +185,7 @@ int CalifaParser::parseTimestamp(uint32_t *&p, uint32_t* p_end)
     }
   if (ts->whiterabbit || ts->titris)
     {
+      ts->whiterabbit_prev=this->tsmap[system_id].whiterabbit;
       this->tsmap[system_id]=*ts;
       this->lastSysID=system_id;
       p=data;
@@ -233,6 +244,8 @@ CalifaParser::module_index_t CalifaParser::parseGosip(uint32_t *&p,
       //      return 1;
       duplicate=1;
     }
+
+ 
   ei=&(this->eventmap[idx]);
   memset(ei, 0, sizeof(eventinfo_t));
 
@@ -369,7 +382,7 @@ int CalifaParser::parseEvent(uint32_t *&pl_tmp,
       //lerror("No traces found!\n");
     }
 
-  const std::vector<subEventIdxType> virtevent_types={petalIdx};
+  const std::vector<subEventIdxType> virtevent_types={};//petalIdx};
 
   for (auto& st: virtevent_types)
     {

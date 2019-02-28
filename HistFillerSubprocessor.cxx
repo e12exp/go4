@@ -81,7 +81,7 @@ static void appendIdxName(char* buf, size_t totlen, const char* prefix, CalifaPa
   auto start=strlen(buf);
   auto b=buf+start;
   auto len=totlen-start;
-  if (idx==IDX_ANY)
+  if (idx==IDX_ANY || idx==IDX_EVENT)
     snprintf(b, len, "%s%s", prefix, postfix);
   else if (GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxChannelIdx)
     snprintf(b, len, "%s_%01d_%02d_%02d%s", 
@@ -107,7 +107,7 @@ static void appendIdxPath(char* buf, size_t totlen, const char* prefix, CalifaPa
   auto start=strlen(buf);
   auto b=buf+start;
   auto len=totlen-start;
-  if (idx==IDX_ANY)
+  if (idx==IDX_ANY || idx==IDX_EVENT)
     ; // nothing
   else if (GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxChannelIdx)
       snprintf(b, len, "%s/sfp_%01d/febex_%02d/", 

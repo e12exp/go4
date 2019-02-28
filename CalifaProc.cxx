@@ -51,7 +51,7 @@ int no_backtrace=disable_backtrace();
 
 
 
-CalifaProc* CalifaProc::gProc=NULL;
+CalifaProc* CalifaProc::inst=NULL;
 
 
 void CalifaProc::RegisterSubprocessor(CalifaSubprocessor* sp)
@@ -65,7 +65,7 @@ void CalifaProc::RegisterSubprocessor(CalifaSubprocessor* sp)
 
 void CalifaProc::registerObject(TObject* o)
 {
-  
+  this->drawables.insert(o);
   linfo("registering a new TObject of type %s\n", o->ClassName());
   if (auto h=dynamic_cast<TH1*>(o))
     {
@@ -120,17 +120,27 @@ CalifaProc::~CalifaProc()
   delete this->parser;
 }
 
+
 // this one is used in standard factory
 CalifaProc::CalifaProc(const char *name, TGo4EventProcessor* go4ep)
 {
-  linfo("**** CalifaProc: Create instance %s\n", name);
+  linfo("**** CalifaProc: Create instance %s, go4ep=%p\n", name, go4ep);
 #ifdef RESET_BACKTRACE
   disable_backtrace();
 #endif
-  CalifaProc::gProc=this;
+  CalifaProc::inst=this;
   this->parser=new CalifaSumParser();
+  this->setGo4EP(go4ep);
+  (OnDemandSubprocessor::instance())->registerSP();
+}
+
+
+void CalifaProc::setGo4EP(TGo4EventProcessor* go4ep)
+{
+  printf("Setting TGo4EventProcessor* to %p\n\n\n", go4ep);
   this->go4ep=go4ep;
-  (new OnDemandSubprocessor())->registerSP();
+  for (auto o: drawables)
+    this->registerObject(o);
 }
 
 // event function
@@ -152,6 +162,10 @@ Bool_t CalifaProc::BuildEvent(TGo4EventElement * target)
       for (auto sp : this->subprocessors[IDX_ANY])
 	(sp)->applyCut(this->parser);
 
+  if (this->subprocessors.count(IDX_EVENT))
+    for (auto sp : this->subprocessors[IDX_EVENT])
+	(sp)->applyCut(this->parser);
+
   return kTRUE;
 }
 
@@ -162,7 +176,7 @@ Bool_t wrapperBuildEvent(void*p, TGo4EventElement* target)
 
 void* createCalifaProc(const char* name, TGo4EventProcessor* w)
 {
-  return new CalifaProc(name, w);
+  return CalifaProc::instance(name, w);
 }
 
 //----------------------------END OF GO4 SOURCE FILE ---------------------
