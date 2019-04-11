@@ -1,4 +1,7 @@
 #!/bin/bash
+rm -f Go4AutoSave.root # die in a fire
+
+
 OUT=$(mktemp --suffix=.hotstart)
 echo building hotstart for $i in $OUT
 

@@ -12,7 +12,7 @@ SingleTraceSubprocessor::SingleTraceSubprocessor(char* name,
 
 void SingleTraceSubprocessor::processSubevent(eventinfo_t ei)
 {
-  if (ei.trace)
+  if (ei.trace )//&& !(ei.evnt->timestamp & 0xff00))
     {
       this->h->Reset();
       for (unsigned int i=1; i<=ei.tracepoints; i++)
@@ -20,7 +20,7 @@ void SingleTraceSubprocessor::processSubevent(eventinfo_t ei)
 	  this->h->SetBinContent(i, getTracePoint(ei.trace, i));
 	}
       char buf[100];
-      snprintf(buf, 100, "%s en=%d, q_f=%d, q_s=%d, type %d", h->GetName(), ei.evnt->energy, ei.evnt->n_f, ei.evnt->n_s, ei.trace->type);
+      snprintf(buf, 100, "%s en=%d, q_f=%d, q_s=%d, type %d @0x%lx", h->GetName(), ei.evnt->energy, ei.evnt->n_f, ei.evnt->n_s, ei.trace->type, ei.evnt->timestamp);
       this->h->SetTitle(buf);
     }
 }

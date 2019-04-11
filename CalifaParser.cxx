@@ -5,12 +5,15 @@
 #include <stdio.h>
 #include "debug.h"
 #include <list>
+
+#include <algorithm>
 const uint32_t CalifaParser::_SYSIDS[]= {0x100, 0x200, 0x300, 0x400};
 const std::set<uint32_t> CalifaParser::SYSIDS(_SYSIDS, _SYSIDS+4);
 #define SYSID_CALIFA 0x400
 
 CalifaParser::CalifaParser(): eventmap(), tsmap(), subevent_count(0)
 {
+  memset(&last_ts, 0, sizeof(last_ts));
   //initialize stuff
   //this->eventmap();
 }
@@ -188,6 +191,7 @@ int CalifaParser::parseTimestamp(uint32_t *&p, uint32_t* p_end)
       ts->whiterabbit_prev=this->tsmap[system_id].whiterabbit;
       this->tsmap[system_id]=*ts;
       this->lastSysID=system_id;
+      this->last_ts=*ts;
       p=data;
       return 0;
     }
@@ -325,6 +329,7 @@ int CalifaParser::parseEvent(uint32_t *&pl_tmp,
 	  free(ei->evnt);
 	}
       ei->evnt=evnt;
+      ei->wrts=this->last_ts.whiterabbit;
     }
   else
     {
@@ -373,7 +378,8 @@ int CalifaParser::parseEvent(uint32_t *&pl_tmp,
 	      ei->trace=data;
 	      //don't ask me why we need -2 here, but the last points
 	      // are often bad. 
-	      ei->tracepoints=data->size/2-sizeof(trace_head_t)-2;
+	      ei->tracepoints=std::max(0, int(data->size/2-sizeof(trace_head_t)-2));
+	      //printf("tl=%d, %d %lu", ei->tracepoints, data->size/2,sizeof(trace_head_t));
 	    }
 	}
     }

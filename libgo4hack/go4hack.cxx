@@ -39,9 +39,9 @@ static onClickMap_t onClickMap={
   {{"coinc_abs_mod_vs_fbx_channel", kButton1Down},
    [](auto out, auto m, auto c){getHistname(out, "lim_energy", m/20, m%20, c);}},
   {{"coinc_abs_mod_vs_fbx_channel", kButton3Down},
-   [](auto out, auto m, auto c){getHistname(out, "full_energy", m/20, m%20, c);}},
-  {{"coinc_abs_mod_vs_fbx_channel", kWheelUp},
    [](auto out, auto m, auto c){getHistname(out, "trace_last", m/20, m%20, c);}},
+  {{"coinc_abs_mod_vs_fbx_channel", kWheelUp},
+   [](auto out, auto m, auto c){getHistname(out, "full_energy", m/20, m%20, c);}},
   {{"coinc_abs_mod_vs_fbx_channel", kWheelDown},
    [](auto out, auto m, auto c){getHistname(out, "lim_n_f_vs_lim_n_s", m/20, m%20, c);}}
 };

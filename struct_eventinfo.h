@@ -6,6 +6,7 @@
 
 typedef struct eventinfo
 {
+  uint64_t wrts;
   gosip_sub_header_t *gosip;
   event_t *evnt;
   trace_head_t *trace;

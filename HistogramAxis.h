@@ -59,7 +59,7 @@ constexpr HistogramAxis cut(HistogramAxis cutaxis, std::function<bool(double)> c
 
 #if NEED_BODIES //////////////////////////////////////////////////////
 /*
-double HistogramAxisHandlers_evnt_wrts()
+double HistogramAxisHandlers_evnt_wrts)
 {
   
 }
@@ -339,9 +339,9 @@ double HistogramAxisHandlers_evnt_petal_(CalifaParser* parser, CalifaParser::mod
 DECLARE_HISTAXIS(hack, psp_sum, 30000, 0, 30000);
 DECLARE_HISTAXIS(hack, psp_diff, 30000, -15000, 15000);
 
-DECLARE_HISTAXIS(full, wrts_diff_califa_ams, 2000, -100000, 100000);
-DECLARE_HISTAXIS(full, wrts_diff_main_ams, 2000, -100000, 100000);
-DECLARE_HISTAXIS(full, wrts_diff_califa_main, 2000, -100000, 100000);
+//DECLARE_HISTAXIS(full, wrts_diff_califa_ams, 2000, -100000, 100000);
+//DECLARE_HISTAXIS(full, wrts_diff_main_ams, 2000, -100000, 100000);
+DECLARE_HISTAXIS(full, wrts_diff_califa_main, 10000, -100000, 100000);
 
 DECLARE_HISTAXIS(full, wrts_ms_califa, 100000, 0, 100000);
 DECLARE_HISTAXIS(full, wrts_ms_main, 100000, 0, 100000);
