@@ -26,7 +26,10 @@ DOOPTIMIZATION = false
 # uncomment and edit following line
 #LIBS_FULLSET += -L/home/usr/special/lib -lspecial
 
-all: build
+all: build libgo4hack/libgo4hack.so
+
+libgo4hack/libgo4hack.so:
+	make -C libgo4hack
 
 CalifaProc.o:	CalifaConfig.h CalifaProc.cxx
 
@@ -51,6 +54,7 @@ clean-obj: clean-obj-$(MODULE_NAME)
 
 clean: clean-$(MODULE_NAME)
 	@echo "Clean everything in $(MODULE_NAME)"
+	make -C libgo4hack clean
 	rm -f *~
 
 ifdef DOMAP
