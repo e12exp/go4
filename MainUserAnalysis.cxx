@@ -191,9 +191,10 @@ if(servermode)
  if(runningMode == kBatch)
    {
      cout << "**** Main: starting analysis in batch mode ...  " << endl;
-     analysis->SetAutoSave(kTRUE);   // optional enable auto-save
+     analysis->SetAutoSave(0);
      if (analysis->InitEventClasses() )
        {
+     cout << "**** Main2: starting analysis in batch mode ...  " << endl;
     analysis->RunImplicitLoop(maxevents);
     delete analysis;
     cout << "**** Main: Done!"<<endl;

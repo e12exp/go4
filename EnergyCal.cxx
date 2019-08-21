@@ -19,8 +19,8 @@ const TF1* EnergyCal::getCal(CalifaParser::module_index_t idx)
       else
 	{
 	  CalifaParser::module_index_t idx;
-	  char buf[21];
-	  while(fscanf(f, " %hhx %hhx %hhx %20s",
+	  char buf[51];
+	  while(fscanf(f, " %hhd %hhd %hhd %50s",
 			 &(GET_SFP(idx)),
 			 &(GET_MOD(idx)),
 			 &(GET_CH(idx)),
@@ -29,7 +29,7 @@ const TF1* EnergyCal::getCal(CalifaParser::module_index_t idx)
 	      char name[30];
 	      snprintf(name, 30, "en_cal_%d", count++);
 	      (*EnergyCal::cal)[idx]=new TF1(name, buf);
-	      linfo("read channel calibration %x %x %x: %s\n", 
+	      linfo("read channel calibration 0x%x 0x%x 0x%x: %s\n", 
 		    (GET_SFP(idx)),
 		    (GET_MOD(idx)),
 		    (GET_CH(idx)),buf);

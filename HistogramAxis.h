@@ -127,6 +127,7 @@ double HistogramAxisHandlers_evnt_wrts_diff(CalifaParser* parser,
   int64_t cur1=int64_t(tsmap.at(sys1).whiterabbit);
   int64_t cur2=int64_t(tsmap.at(sys2).whiterabbit);
 
+  #if 0 
   if (cur1==last1 && cur2==last2) //no new event concerning us
     return NAN;
 
@@ -135,7 +136,7 @@ double HistogramAxisHandlers_evnt_wrts_diff(CalifaParser* parser,
 
   if (last2<last1 && cur2 < last1) //no leapfrog
     return NAN;
-
+#endif 
   last1=cur1;
   last2=cur2;
   return (double)(cur1-cur2);
@@ -207,6 +208,20 @@ double  HistogramAxisHandlers_evnt_xenergy(CalifaParser* parser, CalifaParser::m
   auto ei=parser->getCalifaEvents()->at(*idx);
   if (!ei.evnt)
     return 0.0;
+  return ei.evnt->energy;
+}
+
+
+double  HistogramAxisHandlers_evnt_yenergy(CalifaParser* parser, CalifaParser::module_index_t* idx) //energy: overflow -> NAN
+{
+  GETPARSER
+    if (!idx || !parser->getCalifaEvents()->count(*idx))
+      return NAN; 
+  auto ei=parser->getCalifaEvents()->at(*idx);
+  if (!ei.evnt)
+    return NAN;
+  if (ei.evnt->overflow)
+    return NAN;
   return ei.evnt->energy;
 }
 
@@ -342,6 +357,7 @@ DECLARE_HISTAXIS(hack, psp_diff, 30000, -15000, 15000);
 //DECLARE_HISTAXIS(full, wrts_diff_califa_ams, 2000, -100000, 100000);
 //DECLARE_HISTAXIS(full, wrts_diff_main_ams, 2000, -100000, 100000);
 DECLARE_HISTAXIS(full, wrts_diff_califa_main, 10000, -100000, 100000);
+DECLARE_HISTAXIS(lim, wrts_diff_califa_main, 4000, 0, 4000);
 
 DECLARE_HISTAXIS(full, wrts_ms_califa, 100000, 0, 100000);
 DECLARE_HISTAXIS(full, wrts_ms_main, 100000, 0, 100000);
@@ -354,6 +370,9 @@ DECLARE_HISTAXIS(full, wrts_skip_ams,    10000, 0, 1000000);
 
 DECLARE_HISTAXIS(full, energy, 65536, -32768, 32768);
 DECLARE_HISTAXIS(lim,  energy, 4000, 0, 4000);
+DECLARE_HISTAXIS(lim2,  energy, 4096, 0, 32768);
+DECLARE_HISTAXIS(lim2,  yenergy, 4096, 0, 32768);
+
 DECLARE_HISTAXIS(lim, xenergy, 4000, 0, 4000);
 
 DECLARE_HISTAXIS(full, n_f, 65536, -32768, 32768);
@@ -394,9 +413,9 @@ HistogramAxis* createCalEnergyAxis(CalifaParser::module_index_t idx)
   HistogramAxis* h=(HistogramAxis*) malloc(sizeof(HistogramAxis));
   double slope=f->Eval(1) - f->Eval(0);
   double offset=f->Eval(0);
-  double minRawBin=(idx==idx0)?0:100;
-  double maxEnergy0=16e3;
-  int rescale=(idx==idx0)?1:5;
+  double minRawBin=0; //(idx==idx0)?0:100;
+  double maxEnergy0=3e3;//16e3;
+  int rescale=1; //(idx==idx0)?1:5;
   double maxRawBin=floor(maxEnergy0/slope/rescale)*rescale;
   double minEnBin=f->Eval(minRawBin);
   double maxEnBin=floor(f->Eval(maxRawBin));
@@ -409,5 +428,8 @@ HistogramAxis* createCalEnergyAxis(CalifaParser::module_index_t idx)
 }
 #endif
 ;
+
+// alternately, a version with a fixed 
+DECLARE_HISTAXIS(lim,cal_en, 4000, 0, 2.0);
 
 #endif

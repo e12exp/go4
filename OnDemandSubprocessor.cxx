@@ -68,7 +68,16 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       //      new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_diff_main_ams);
       //      new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_diff_califa_ams);
       new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_diff_califa_main);
-      
+      static HistogramAxis wrts_diff_febex[]={axis_lim_wrts_diff_califa_main, axis_coinc_abs_mod};
+      new HistFillerSubprocessor<TH(2,I), 1>(&any, wrts_diff_febex);
+      auto ch=IDX(0, 1, 0);
+      new HistFillerSubprocessor<TH(1,I), 1>(&ch, &axis_full_wrts_diff_califa_main);
+
+      static HistogramAxis wrts_diff_en[]={axis_lim_wrts_diff_califa_main, axis_lim2_yenergy};
+      new HistFillerSubprocessor<TH(2,I), 1>(&any, wrts_diff_en, 10);
+      static HistogramAxis wrts_diff_en2[]={axis_lim_wrts_diff_califa_main, axis_lim2_energy};
+      new HistFillerSubprocessor<TH(2,I), 1>(&any, wrts_diff_en2, 10);
+
       new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_ms_califa);
       //      new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_ms_ams);
       new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_ms_main);
@@ -127,7 +136,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       {
 	// add one channel for each module before, so the channel dirs get created in right order
 	for (uint8_t sfp=0; sfp<=GET_SFP(idx); sfp++)
-	  for (uint8_t module=0; module<GET_MOD(idx); module++)
+	  for (uint8_t module=0; module<=GET_MOD(idx); module++)
 	    {
 	      CalifaParser::module_index_t i=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx,
 							     sfp, module,	(uint8_t)0);
@@ -139,7 +148,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
 		this->addChannel(p, i2, tracepoints);
 	      }
 	      // febex mod
-	      if (0)
+	      if (1)
 		{
 		  auto i2=CalifaParser::toIdxType(CalifaParser::subEventIdxType::fbxModuleIdx, i);
 		  printf("--->adding %d %d %d %d\n", GET_TYPE(i2), GET_SFP(i2), GET_MOD(i2), GET_CH(i2));
@@ -200,12 +209,18 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
 	   GET_CH(idx));
       //new HistFillerSubprocessor<TH(2,I), 1>(&idx, qpid_axis, 2);
   
-      if (HistogramAxis* ha=createCalEnergyAxis(idx))
+      /*      if (HistogramAxis* ha=createCalEnergyAxis(idx))
 	{
 	  new HistFillerSubprocessor<TH(1,I), 1>(&idx, ha);
 	  ldbg(" also created a calibrated energy processor\n");
 	  //  new ChannelCutHistFillerSubprocessor<TH(2,I), 1>(&idx, qpid_axis, 64,
 	  //						       &idx, ha, 30.0, 8000.0);
+	}
+      else 
+      */if (1)//;GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxModuleIdx)
+	{
+	  new HistFillerSubprocessor<TH(1,I), 1>(&idx, &axis_lim_cal_en);
+
 	}
       //new HistFillerSubprocessor<TH(2,I), 1>(&idx, qpid_axis, 64);
       if (correlations.count(idx))

@@ -1,7 +1,7 @@
 #ifndef _CalifaCONFIG_H_
 #define _CalifaCONFIG_H_
 
-#define LOGLEVEL 0
+#define LOGLEVEL 5
 
 
 #define TIME_ZERO {0,0} //{port id, slave id}
