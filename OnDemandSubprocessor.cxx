@@ -16,6 +16,7 @@ OnDemandSubprocessor::OnDemandSubprocessor(): energy_subprocessors(), trace_subp
 }
 
 #define IDX(A, B, C) CalifaParser::module_index_t(CalifaParser::subEventIdxType::fbxChannelIdx, A, B, C)
+#define MIDX(A, B)  CalifaParser::module_index_t(CalifaParser::subEventIdxType::fbxModuleIdx, A, B, IDX_WILDCARD)
 
 void OnDemandSubprocessor::processEvent(CalifaParser* p)
 {
@@ -47,7 +48,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
   //  static HistogramAxis axis080=	  *createCalEnergyAxis(IDX(0, 8, 0));
 
   static HistogramAxis qpid_axis[]={axis_lim_n_f, axis_lim_n_s};
-  static HistogramAxis en2_axis[]={axis_lim_xenergy, axis_lim_xenergy};
+  static HistogramAxis en2_axis[]={axis_lim_cal_en, axis_lim_cal_en};
   static HistogramAxis module_channel[]={axis_coinc_abs_mod, axis_fbx_channel};
   static HistogramAxis module_mchannel[]={axis_fbx_sfp0_module, axis_mesytec_PA_ch};
   static HistogramAxis module_ts_diff[]={axis_coinc_abs_mod, axis_coinc_ts_diff};
@@ -85,6 +86,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_skip_califa);
       //      new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_skip_ams);
       new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_skip_main);
+      new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_coinc_multiplicity);
 
       static auto idx_006=IDX(0, 0, 6);
       //new HistFillerSubprocessor<TH(1,I), 1>(&idx_006, &axis_hack_psp_sum);
@@ -177,6 +179,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
     {
       //      {IDX(0, 0, 0), {IDX(0, 0, 1)}},
       // {IDX(0, 0, 1), {IDX(0, 0, 2)}},
+     {MIDX(0,0), {MIDX(0,1)}},
       {IDX(0, 6, 0),
        {
 	 IDX(0, 6, 15),

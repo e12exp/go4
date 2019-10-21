@@ -90,7 +90,7 @@ static void appendIdxName(char* buf, size_t totlen, const char* prefix, CalifaPa
 	     GET_CH(idx),
 	     postfix);
   else if (GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxModuleIdx)
-    snprintf(b, len, "%s_%01d_%02d*%s", 
+    snprintf(b, len, "%s_%01d_%02d_*%s", 
 	     prefix,
 	     GET_SFP(idx), GET_MOD(idx),
 	     postfix);

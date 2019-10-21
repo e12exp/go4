@@ -5,5 +5,5 @@ test -f "$1" && exec go4 "$@"
 OUT=$(mktemp --suffix=.hotstart)
 echo building hotstart for $i in $OUT
 
-sed s/__STREAM__/$1/g template.hotstart >$OUT
+sed s/__STREAM__/$1/g hotstart.template >$OUT
 exec go4 $OUT

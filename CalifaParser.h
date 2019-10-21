@@ -116,6 +116,12 @@ class CalifaParser
   {
     return this->subevent_count;
   }
+
+  unsigned int getMultiplicity()
+  {
+    return multiplicity;
+  }
+  
  protected:
   static const uint32_t _SYSIDS[];
   static const std::set<uint32_t> SYSIDS;
@@ -124,7 +130,7 @@ class CalifaParser
   static const uint32_t N_CHA=16;
 
   std::map<module_index_t, event_t> virtevents; // persistant allocation for non-fbx-channel events
-  
+  unsigned int multiplicity;
   eventmap_t eventmap;
   tsmap_t tsmap;
   timestamp_t last_ts;

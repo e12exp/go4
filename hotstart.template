@@ -1,0 +1,27 @@
+// Automatically generated startup script
+// Do not change it!
+
+
+go4->LaunchAnalysis("MyAnalysis", ".", "libGo4UserAnalysis", "localhost", Go4_sh, Go4_qt, Go4_lib);
+go4->WaitAnalysis(300);
+
+// configuration of analysis
+go4->AnalysisAutoSave("Go4AutoSave.root", 500, 5, kFALSE, kFALSE);
+go4->AnalysisConfigName("Go4AnalysisPrefs.root");
+
+// step Analysis
+go4->ConfigStep("Analysis", kTRUE, kTRUE, kFALSE);
+go4->StepMbsStreamSource("Analysis", "__STREAM__", 1);
+go4->StepFileStore("Analysis", "NoOutputDefined", kTRUE, 32000, 99, 5, 10000);
+
+go4->SubmitAnalysisConfig(20);
+
+go4->SetAnalysisConfigMode(-1);
+go4->SetAnalysisTerminalMode(-1);
+
+go4->StartAnalysis();
+
+// in some analysis one requires to wait several seconds before new histograms appears
+// go4->Wait(1);
+go4->RefreshNamesList();
+

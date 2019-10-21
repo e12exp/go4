@@ -72,6 +72,15 @@ double HistogramAxisHandlers_evnt_sfp0_module_dual(CalifaParser* parser,
   return GET_MOD(*idx)+10*(en>5000 );
 }
 
+double HistogramAxisHandlers_evnt_multiplicity(CalifaParser* parser,
+					       CalifaParser::module_index_t* idx)
+{
+  if (!parser)
+    return NAN;
+  return parser->getMultiplicity();
+}
+
+
 double HistogramAxisHandlers_evnt_psp_sum(CalifaParser* parser,
 					  CalifaParser::module_index_t* idx)
 {
@@ -397,6 +406,7 @@ DECLARE_HISTAXIS(mesytec,PA_ch,   16, 1, 17);
 DECLARE_HISTAXIS(coinc,pulser, 3, 0, 3);
 DECLARE_HISTAXIS(coinc,ts_diff, 420*2, -420, 420);
 DECLARE_HISTAXIS(coinc,abs_mod, 80, 0, 80);
+DECLARE_HISTAXIS(coinc,multiplicity, 5000, 0, 5000);
 
 //DECLARE_HISTAXIS(coinc,abs_ch, 80*16, 0, 80*16);
 

@@ -11,7 +11,7 @@ const uint32_t CalifaParser::_SYSIDS[]= {0x100, 0x200, 0x300, 0x400};
 const std::set<uint32_t> CalifaParser::SYSIDS(_SYSIDS, _SYSIDS+4);
 #define SYSID_CALIFA 0x400
 
-CalifaParser::CalifaParser(): eventmap(), tsmap(), subevent_count(0)
+CalifaParser::CalifaParser(): eventmap(), tsmap(), subevent_count(0), multiplicity(0)
 {
   memset(&last_ts, 0, sizeof(last_ts));
   //initialize stuff
@@ -25,7 +25,7 @@ void CalifaParser::reset()
       if (it->second.evnt)
 	free(it->second.evnt);
   this->eventmap.clear();
-
+  this->multiplicity=0;
   
 }
 
@@ -130,6 +130,7 @@ int CalifaParser::parse(uint32_t* p, uint32_t len)
   this->subevent_count++;
   ldbg("parsing of subevent %d completed successfully with %d good and %d / %d  bad gosip/event headers!\n",
 	this->subevent_count, goodheaders, badgosipheaders, badeventheaders);
+  this->multiplicity=this->eventmap.size();
   return badgosipheaders+badeventheaders;
 }
 
