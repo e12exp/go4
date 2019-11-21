@@ -20,7 +20,9 @@
 #include <Buttons.h>
 #define LC kButton1Down
 
-
+#ifndef __cpp_generic_lambdas
+#warning "No support for generic lambdas, clickable TH2s will be disabled."
+#else
 static void getHistname(char out[NAME_LEN], const char* basename, uint8_t sfp, uint8_t module, uint8_t channel)
 {
   snprintf(out, 256, "Analysis/Histograms/%s/sfp_%01d/febex_%02d/%s_%01d_%02d_%02d", 
@@ -86,5 +88,6 @@ void THistPainter::ExecuteEvent(Int_t event, Int_t px, Int_t py)
   else
     printf("could not find original THistPainter::ExecuteEvent method. name wrangling wrong?\n");
 }
+#endif
 
 

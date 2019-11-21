@@ -42,7 +42,7 @@ test:
 
 #GCCDIR=/home/pklenze/software/gcc-4.9.1/
 GCCDIR=/usr
-CXXFLAGS:=$(CXXFLAGS)  -std=c++17 -O0 -g -I $(PWD) -Wall -Wno-unused-variable -Wno-write-strings
+CXXFLAGS:=$(CXXFLAGS)  -std=c++14 -O0 -g -I $(PWD) -Wall -Wno-unused-variable -Wno-write-strings
 LDFLAGS:=$(LDFLAGS) -L $(GCCDIR)/lib64
 #CXX=$(GCCDIR)/bin/g++
 CXX=g++
