@@ -90,14 +90,23 @@ int CalifaParser::parse(uint32_t* p, uint32_t len)
     return -1; 
   //linfo("parsing %d words starting from %lx\n", len, p);
   uint32_t* p_end=p+len;
-  if (parseTimestamp(p, p_end)<0) //ignore positive errors here.
-    return -1; //a timestamp with a bad magic number
-
+  auto ts_ret=parseTimestamp(p, p_end);
+  else if (!ts_ret)
+    {
+      linfo("after wrts: @%lx is %lx\n", p, *p);
+      if (getSysID()!=SYSID_CALIFA)
+	return 0; // for other systems, just parse the TS
+    }
+  if (ts_ret<0) //ignore positive errors here.
+    {
+      linfo("bad WRTS.\n");
+      return -1; //a timestamp with a bad magic number
+    }
+  else // positive error=> no ts info.
+    {
+      linfo("no WRTS found. assuming califa stand-alone.\n");
+    }
   
-  linfo("after wrts: @%lx is %lx\n", p, *p);
-
-  if (getSysID()!=SYSID_CALIFA)
-    return 0; // for other systems, just parse the TS
   
   if ((*p) == 0xbad00bad)
     {
