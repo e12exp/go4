@@ -41,10 +41,6 @@ class CalifaProc
     return CalifaProc::inst;
   }
 
-  /*  static const uint32_t FEBEX_PROC_ID=1;
-  static const uint32_t FEBEX_EVT_TYPE=10;
-  static const uint32_t FEBEX_SUBEVT_TYPE=1;
-  */
 
   static CalifaProc* instance(const char* name, TGo4EventProcessor* go4ep)
   {

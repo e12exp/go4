@@ -7,9 +7,6 @@
 #include <list>
 
 #include <algorithm>
-const uint32_t CalifaParser::_SYSIDS[]= {0x100, 0x200, 0x300, 0x400};
-const std::set<uint32_t> CalifaParser::SYSIDS(_SYSIDS, _SYSIDS+4);
-#define SYSID_CALIFA 0x400
 
 CalifaParser::CalifaParser(): eventmap(), tsmap(), subevent_count(0), multiplicity(0)
 {
@@ -26,7 +23,6 @@ void CalifaParser::reset()
 	free(it->second.evnt);
   this->eventmap.clear();
   this->multiplicity=0;
-  
 }
 
 int CalifaParser::parseGo4(TGo4MbsEvent* fInput)
@@ -46,18 +42,7 @@ int CalifaParser::parseGo4(TGo4MbsEvent* fInput)
 
   while(auto psubevt = fInput->NextSubEvent())
     {
-      uint32_t evt_type = psubevt->GetType();
-      uint32_t subevt_type = psubevt->GetSubtype();
-      uint32_t procid = psubevt->GetProcid();
-
-#if 0 //CHECK_EVT_TYPE   
-      if(evt_type != FEBEX_EVT_TYPE || subevt_type != FEBEX_SUBEVT_TYPE || procid != FEBEX_PROC_ID)
-	{
-	  linfo("ignored event with evt_type=0x%x, subevent_type=0x%x, procid=0x%x\n", evt_type, subevt_type, procid);
-	  continue; 
-	}
-#endif
-      int r=this->parse((uint32_t*)psubevt->GetDataField(), psubevt->GetIntLen());
+      int r=this->parseSubEvent(psubevt) ;
 
       if (r)
 	{
@@ -84,8 +69,10 @@ int CalifaParser::parseGo4(TGo4MbsEvent* fInput)
 
 
 //len in words of 4 bytes
-int CalifaParser::parse(uint32_t* p, uint32_t len)
+int CalifaParser::parseSubEvent(TGo4MbsSubEvent* psubevt)
 {
+  auto p=(uint32_t*)psubevt->GetDataField();
+  auto len=psubevt->GetIntLen();
   if (!p)
     return -1; 
   //linfo("parsing %d words starting from %lx\n", len, p);
@@ -94,8 +81,6 @@ int CalifaParser::parse(uint32_t* p, uint32_t len)
   if (!ts_ret)
     {
       linfo("after wrts: @%lx is %lx\n", p, *p);
-      if (getSysID()!=SYSID_CALIFA)
-	return 0; // for other systems, just parse the TS
     }
   else if (ts_ret<0) //ignore positive errors here.
     {
@@ -105,6 +90,16 @@ int CalifaParser::parse(uint32_t* p, uint32_t len)
   else // positive error=> no ts info.
     {
       linfo("no WRTS found. assuming califa stand-alone.\n");
+    }
+  uint32_t evt_type = psubevt->GetType();
+  uint32_t subevt_type = psubevt->GetSubtype();
+  uint32_t procid = psubevt->GetProcid();
+  uint8_t control=psubevt->GetControl();
+  
+  if(evt_type != FEBEX_EVT_TYPE || subevt_type != FEBEX_SUBEVT_TYPE || procid != FEBEX_PROC_ID)
+    {
+      linfo("ignored event with evt_type=0x%x, subevent_type=0x%x, procid=0x%x\n", evt_type, subevt_type, procid);
+      return 0; 
     }
   
   
@@ -125,11 +120,11 @@ int CalifaParser::parse(uint32_t* p, uint32_t len)
 	p++;
       //ldbg("pointer after skipped padding: %lx\n", p);
       eventinfo_t* ei=NULL;
-      auto idx=this->parseGosip(p, ei, next);
+      auto idx=this->parseGosipHeader(p, ei, next, control);
       if (idx==IDX_INVALID)
 	  badgosipheaders++;
 	else
-	  if (this->parseEvent(p, ei, idx))
+	  if (this->parseCalifaHit(p, ei, idx))
 	    badeventheaders++;
 	  else
 	    goodheaders++;
@@ -167,8 +162,6 @@ int CalifaParser::parseTimestamp(uint32_t *&p, uint32_t* p_end)
   uint32_t system_id = *data;
   ts->whiterabbit = 0;
   ts->titris = 0;
-  if (!CalifaParser::SYSIDS.count(system_id))
-    return 1;
   linfo("timestamp found with system id 0x%x\n", system_id);
   while(data < p_end && *data == system_id)
     {
@@ -209,8 +202,8 @@ int CalifaParser::parseTimestamp(uint32_t *&p, uint32_t* p_end)
   return 1;
 }
 
-CalifaParser::module_index_t CalifaParser::parseGosip(uint32_t *&p,
-						      eventinfo_t* &ei, uint32_t* &next)
+CalifaParser::module_index_t CalifaParser::parseGosipHeader(uint32_t *&p,
+						      eventinfo_t* &ei, uint32_t* &next, uint8_t control)
 {
   linfo("gosip first word : @%lx is %lx\n", p, *p);
   linfo("gosip second word: @%lx is %lx\n", p+1, *(p+1));
@@ -238,14 +231,29 @@ CalifaParser::module_index_t CalifaParser::parseGosip(uint32_t *&p,
       //deactivated channel
       || (gosip_sub->data_size == 4 && *p == 0xdeadda7a)
       //Data reduction: Empty channel
+      || gosip_sub->sfp_id>3 // weird broken events
       )
     {
       //ldbg("gosip: ignored bad event\n");
       return IDX_INVALID;
     }
+
+  uint8_t sfp_offset=70;
+  if (control==90)
+    {
+      sfp_offset=10;
+    }
+  else if (control==91)
+    {
+      sfp_offset=20;
+    }
+  else
+    {
+      lerror("I do not know about SE_CONTROL==%d, will assign an sfp offset of %d to them.", control, sfp_offset);
+    }
   //linfo("found a good event\n");
   module_index_t idx=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx,
-				     (uint8_t)(gosip_sub->sfp_id),
+				     (uint8_t)(gosip_sub->sfp_id)+sfp_offset,
 				     (uint8_t)(gosip_sub->module_id),
 				     gosip_sub->submemory_id);
   bool duplicate=0;
@@ -273,7 +281,7 @@ CalifaParser::module_index_t CalifaParser::parseGosip(uint32_t *&p,
 }
 
 
-int CalifaParser::parseEvent(uint32_t *&pl_tmp,
+int CalifaParser::parseCalifaHit(uint32_t *&pl_tmp,
 			     eventinfo_t* ei,
 			     CalifaParser::module_index_t idx)
 {

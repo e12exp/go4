@@ -17,7 +17,7 @@ go4->StepFileStore("Analysis", "NoOutputDefined", kTRUE, 32000, 99, 5, 10000);
 go4->SubmitAnalysisConfig(20);
 
 go4->SetAnalysisConfigMode(-1);
-go4->SetAnalysisTerminalMode(-1);
+//go4->SetAnalysisTerminalMode(-1);
 
 go4->StartAnalysis();
 

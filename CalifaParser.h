@@ -32,7 +32,7 @@
 class CalifaParser
 {
  public:
-  static const uint32_t FEBEX_PROC_ID=0x2;
+  static const uint32_t FEBEX_PROC_ID=0xd;
   static const uint32_t FEBEX_EVT_TYPE=0x64;
   static const uint32_t FEBEX_SUBEVT_TYPE=0x2710;
 
@@ -108,7 +108,7 @@ class CalifaParser
     {
     }
   virtual int parseGo4(TGo4MbsEvent *);
-  virtual int parse(uint32_t* p, uint32_t len); //returns 0 on success, non-zero on error
+  virtual int  parseSubEvent(TGo4MbsSubEvent* psubevt); //returns 0 on success, non-zero on error
   eventmap_t* getCalifaEvents(); //returns pointer to event map, which is reset whenever a new FEBEX event comes in
   uint32_t getSysID();         //returns the last system ID from WR, or 0 if there was none
   tsmap_t* getTimestamps();      //returns map of system IDs to latest timestamps
@@ -130,19 +130,19 @@ class CalifaParser
   static const uint32_t N_CHA=16;
 
   std::map<module_index_t, event_t> virtevents; // persistant allocation for non-fbx-channel events
-  unsigned int multiplicity;
   eventmap_t eventmap;
   tsmap_t tsmap;
   timestamp_t last_ts;
   uint32_t lastSysID;
   uint32_t subevent_count;
+  unsigned int multiplicity;
   //immediate storage:
   //  event_t evts;
   //gosip_header_t gossip;
   //gosip_sub_header_t gosip_sub;
   int parseTimestamp(uint32_t *&p, uint32_t* p_end);
-  module_index_t parseGosip(uint32_t* &p, eventinfo_t*&, uint32_t*&);
-  int parseEvent(uint32_t *&pl_tmp, eventinfo_t* ei, module_index_t idx);
+  module_index_t parseGosipHeader(uint32_t* &p, eventinfo_t*&, uint32_t*&, uint8_t control);
+  int parseCalifaHit(uint32_t *&pl_tmp, eventinfo_t* ei, module_index_t idx);
   void reset();
 };
 

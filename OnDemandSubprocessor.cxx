@@ -137,7 +137,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       // for (uint8_t sfp=0; sfp<=GET_SFP(idx); sfp++)
       {
 	// add one channel for each module before, so the channel dirs get created in right order
-	for (uint8_t sfp=0; sfp<=GET_SFP(idx); sfp++)
+	for (uint8_t sfp=10*( GET_SFP(idx)/10); sfp<=GET_SFP(idx); sfp++)
 	  for (uint8_t module=0; module<=GET_MOD(idx); module++)
 	    {
 	      CalifaParser::module_index_t i=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx,
