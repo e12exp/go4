@@ -45,7 +45,8 @@ void FourierSpectrumSubprocessor::processSubevent(eventinfo_t ei)
       this->reFFT(reX, imX, n);
       for (uint32_t i=0; i<n/2; i++)
 	{
-	  this->h->Fill(i*F_ADC/(1.0*n), sqrt(reX[i]*reX[i]+imX[i]*imX[i]));
+          //	  this->h->Fill(i*F_ADC/(1.0*n), sqrt(reX[i]*reX[i]+imX[i]*imX[i]));
+          this->h->AddBinContent(i+1, sqrt(reX[i]*reX[i]+imX[i]*imX[i]));
 	  //std::cout << i << ":" << i*F_ADC/(2.0*n) << " " << sqrt(reX[i]*reX[i]+imX[i]*imX[i]) << std::endl;
 	  this->phase_h->Fill(i*F_ADC/(1.0*n), atan2(imX[i], reX[i]));
 	}

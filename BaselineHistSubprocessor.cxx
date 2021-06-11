@@ -11,8 +11,10 @@ void BaselineHistSubprocessor::processSubevent(eventinfo_t ei)
 {
   if (ei.trace)
     {
+      //auto limit=ei.tracepoints;
+      auto limit=15;
       this->h->Scale(1-1.0/64);
-      for (unsigned int i=1; i<=ei.tracepoints; i++)
+      for (unsigned int i=1; i<=limit; i++)
 	{
 	  this->h->Fill((double)getTracePoint(ei.trace, i));
 	}

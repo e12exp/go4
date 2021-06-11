@@ -40,7 +40,7 @@
 //RPID on/off
 #define RPID 0
 
-#define F_ADC 50
+#define F_ADC 50/2 // For decimated traces, e.g. raw
 
 //Time over Threshold on/off
 #define TOT 0

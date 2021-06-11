@@ -35,7 +35,7 @@ int CalifaParser::parseGo4(TGo4MbsEvent* fInput)
     linfo("**** CalifaProc: Skip trigger event\n" );
     return 2;
   }
-
+  this->lasttrig=fInput->GetTrigger();
   fInput->ResetIterator();
   this->reset();
   linfo("     CalifaParser::parseGo4 Reset Iterator.\n");
@@ -160,6 +160,7 @@ int CalifaParser::parseTimestamp(uint32_t *&p, uint32_t* p_end)
   timestamp_t* ts=&tsdat;
   uint32_t *data = p;
   uint32_t system_id = *data;
+
   ts->whiterabbit = 0;
   ts->titris = 0;
   linfo("timestamp found with system id 0x%x\n", system_id);
@@ -193,7 +194,23 @@ int CalifaParser::parseTimestamp(uint32_t *&p, uint32_t* p_end)
     {
       ts->whiterabbit_prev=this->tsmap[system_id].whiterabbit;
       this->tsmap[system_id]=*ts;
-      this->lastSysID=system_id;
+
+      uint32_t offset=0; // add to system id for specific triggers
+      if (this->lasttrig==1)
+        {
+          offset=0;
+        }
+      else if (this->lasttrig==3) // sync
+        {
+          offset=0x30000;
+        }
+      else
+        {
+          lerror("Unhandled trigger type %d for WRTS id %d", this->lasttrig, system_id);
+          offset=0xffff0000;
+        }
+      
+      this->lastSysID=system_id+offset;
       this->last_ts=*ts;
       p=data;
       return 0;

@@ -49,7 +49,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
 
   static HistogramAxis qpid_axis[]={axis_lim_n_f, axis_lim_n_s};
   static HistogramAxis en2_axis[]={axis_lim_cal_en, axis_lim_cal_en};
-  static HistogramAxis module_channel[]={axis_coinc_abs_mod, axis_fbx_channel};
+  static HistogramAxis module_channel[]={axis_coinc_abs_mod, axis_fbx_pc_channel};
   static HistogramAxis module_mchannel[]={axis_fbx_sfp0_module, axis_mesytec_PA_ch};
   static HistogramAxis module_ts_diff[]={axis_coinc_abs_mod, axis_coinc_ts_diff};
   static HistogramAxis module_pulser[]={axis_fbx_sfp0_module, axis_coinc_pulser};
@@ -68,9 +68,11 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       //new HistFillerSubprocessor<TH(2,I), 1>(&any, module_pulser);
       //      new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_diff_main_ams);
       //      new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_diff_califa_ams);
-      new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_diff_califa_main);
-      static HistogramAxis wrts_diff_febex[]={axis_lim_wrts_diff_califa_main, axis_coinc_abs_mod};
-      new HistFillerSubprocessor<TH(2,I), 1>(&any, wrts_diff_febex);
+      new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_diff_main_mes);
+      new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_diff_main_wix);
+      new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_diff_mes_wix);
+      //static HistogramAxis wrts_diff_febex[]={axis_lim_wrts_diff_califa_main, axis_coinc_abs_mod};
+      //new HistFillerSubprocessor<TH(2,I), 1>(&any, wrts_diff_febex);
       auto ch=IDX(0, 1, 0);
       new HistFillerSubprocessor<TH(1,I), 1>(&ch, &axis_full_wrts_diff_califa_main);
 
@@ -259,7 +261,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
 	//	    FourierSpectrumSubprocessor *fftp=
 	new FourierSpectrumSubprocessor("fft_amp", "fft_phase", 
 					idx, tracepoints,
-					F_ADC/2);
+					F_ADC/2); // for decimated traces. 
       }
 
     }

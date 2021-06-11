@@ -151,11 +151,19 @@ double HistogramAxisHandlers_evnt_wrts_diff(CalifaParser* parser,
   return (double)(cur1-cur2);
 }
 
-#define WRTSDIFF(name, pos, neg) auto HistogramAxisHandlers_evnt_wrts_diff_ ## name =HistogramAxisHandlers_evnt_wrts_diff<pos,neg>;
+#define WRTSDIFF(name, pos, neg) auto HistogramAxisHandlers_evnt_wrts_diff_ ## name =HistogramAxisHandlers_evnt_wrts_diff<pos,neg>; DECLARE_HISTAXIS(full, wrts_diff_##name, 10000, -100000, 100000); DECLARE_HISTAXIS(lim, wrts_diff_##name, 4000, 0, 4000);
 
-WRTSDIFF(main_ams, 0x100, 0x300)
-WRTSDIFF(califa_ams, 0x400, 0x300)
-WRTSDIFF(califa_main, 0x400, 0x100)
+// for trig 1:
+#define WRTS_MES      0x0a00
+#define WRTS_WIX      0x0b00
+#define WRTS_MAIN     0x1000
+#define TRIG3_OFFSET 0x30000
+WRTSDIFF(mes_wix,  WRTS_MES,  WRTS_WIX);
+WRTSDIFF(main_mes, WRTS_MAIN, WRTS_WIX);
+WRTSDIFF(main_wix, WRTS_MAIN, WRTS_WIX);
+WRTSDIFF(t3_mes_wix,  WRTS_MES+TRIG3_OFFSET,  WRTS_WIX+TRIG3_OFFSET);
+WRTSDIFF(t3_main_mes, WRTS_MAIN+TRIG3_OFFSET, WRTS_WIX+TRIG3_OFFSET);
+WRTSDIFF(t3_main_wix, WRTS_MAIN+TRIG3_OFFSET, WRTS_WIX+TRIG3_OFFSET);
 
 template<int sys1>
 double HistogramAxisHandlers_evnt_wrts_ms(CalifaParser* parser, CalifaParser::module_index_t* idx)
@@ -249,6 +257,13 @@ double HistogramAxisHandlers_evnt_channel(CalifaParser* parser, CalifaParser::mo
   return GET_CH(*idx);
 }
 
+double HistogramAxisHandlers_evnt_pc_channel(CalifaParser* parser, CalifaParser::module_index_t* idx)
+{
+  GETEVNT;
+  //printf("%d.x.%d -> %d\n", GET_SFP(*idx), GET_CH(*idx),  (GET_SFP(*idx)/10-1)*20 + GET_CH(*idx));
+  return (GET_SFP(*idx)/10-1)*20 + GET_CH(*idx);
+}
+
 
 /*double HistogramAxisHandlers_evnt_one(CalifaParser* parser, CalifaParser::module_index_t* idx)
 {
@@ -303,7 +318,7 @@ double HistogramAxisHandlers_evnt_abs_mod(CalifaParser* parser, CalifaParser::mo
 {
   if (!idx)
     return NAN;
-  return GET_SFP(*idx)*20+GET_MOD(*idx);
+  return (GET_SFP(*idx)%10)*20+GET_MOD(*idx);
 }
 
 
@@ -365,8 +380,8 @@ DECLARE_HISTAXIS(hack, psp_diff, 30000, -15000, 15000);
 
 //DECLARE_HISTAXIS(full, wrts_diff_califa_ams, 2000, -100000, 100000);
 //DECLARE_HISTAXIS(full, wrts_diff_main_ams, 2000, -100000, 100000);
-DECLARE_HISTAXIS(full, wrts_diff_califa_main, 10000, -100000, 100000);
-DECLARE_HISTAXIS(lim, wrts_diff_califa_main, 4000, 0, 4000);
+//DECLARE_HISTAXIS(full, wrts_diff_califa_main, 10000, -100000, 100000);
+//DECLARE_HISTAXIS(lim, wrts_diff_califa_main, 4000, 0, 4000);
 
 DECLARE_HISTAXIS(full, wrts_ms_califa, 100000, 0, 100000);
 DECLARE_HISTAXIS(full, wrts_ms_main, 100000, 0, 100000);
@@ -402,6 +417,7 @@ DECLARE_HISTAXIS(fbx,sfp1_module, 19, 0, 19);
 DECLARE_HISTAXIS(fbx,sfp2_module, 19, 0, 19);
 DECLARE_HISTAXIS(fbx,sfp3_module, 19, 0, 19);
 DECLARE_HISTAXIS(fbx,channel,     16, 0, 16);
+DECLARE_HISTAXIS(fbx,pc_channel,   36, 0, 36);
 DECLARE_HISTAXIS(mesytec,PA_ch,   16, 1, 17);
 DECLARE_HISTAXIS(coinc,pulser, 3, 0, 3);
 DECLARE_HISTAXIS(coinc,ts_diff, 420*2, -420, 420);

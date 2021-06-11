@@ -128,7 +128,7 @@ class CalifaParser
   static const uint32_t FEBEX_SYSTEM_ID=0x400;
   static const uint32_t AMS_SYSTEM_ID=  0x200;
   static const uint32_t N_CHA=16;
-
+  uint16_t lasttrig;
   std::map<module_index_t, event_t> virtevents; // persistant allocation for non-fbx-channel events
   eventmap_t eventmap;
   tsmap_t tsmap;
