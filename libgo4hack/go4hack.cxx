@@ -35,13 +35,13 @@ typedef std::map<std::pair<std::string, Int_t>,
 
 #define kButton3Down 12 // not kButton2Up
 static onClickMap_t onClickMap={
-  {{"coinc_abs_mod_vs_fbx_channel", kButton1Down},
+  {{"coinc_sfp_mod_vs_fbx_pc_channel", kButton1Down},
    [](char* out, int m, int c){getHistname(out, "lim_energy", m/20, m%20, c);}},
-  {{"coinc_abs_mod_vs_fbx_channel", kButton3Down},
+  {{"coinc_sfp_mod_vs_fbx_pc_channel", kButton3Down},
    [](char* out, int m, int c){getHistname(out, "trace_last", m/20, m%20, c);}},
-  {{"coinc_abs_mod_vs_fbx_channel", kWheelUp},
+  {{"coinc_sfp_mod_vs_fbx_pc_channel", kWheelUp},
    [](char* out, int m, int c){getHistname(out, "full_energy", m/20, m%20, c);}},
-  {{"coinc_abs_mod_vs_fbx_channel", kWheelDown},
+  {{"coinc_sfp_mod_vs_fbx_pc_channel", kWheelDown},
    [](char* out, int m, int c){getHistname(out, "lim_n_f_vs_lim_n_s", m/20, m%20, c);}}
 };
 

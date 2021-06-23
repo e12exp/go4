@@ -63,6 +63,7 @@ int CalifaParser::parseGo4(TGo4MbsEvent* fInput)
 	  //ldbg("calling processEvent for %d processors\n", this->subprocessors.size());
 	}
     }
+  
   return 0;
 }
 
@@ -196,6 +197,7 @@ int CalifaParser::parseTimestamp(uint32_t *&p, uint32_t* p_end)
       this->tsmap[system_id]=*ts;
 
       uint32_t offset=0; // add to system id for specific triggers
+#if 0
       if (this->lasttrig==1)
         {
           offset=0;
@@ -209,7 +211,7 @@ int CalifaParser::parseTimestamp(uint32_t *&p, uint32_t* p_end)
           lerror("Unhandled trigger type %d for WRTS id %d", this->lasttrig, system_id);
           offset=0xffff0000;
         }
-      
+#endif      
       this->lastSysID=system_id+offset;
       this->last_ts=*ts;
       p=data;

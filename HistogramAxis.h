@@ -28,10 +28,12 @@ struct HistogramAxis
 #define EVNT_IMPL(name)   { GETEVNT; return evnt->name; }
 #define DECLARE_HISTAXIS(prefix, name, bins, min, max) HistogramAxis axis_ ## prefix ## _ ## name = {#prefix "_" #name, bins, min, max, HistogramAxisHandlers_evnt_##name, 0};
 #define DECLARE_HISTAXIS2(name, ...) HistogramAxis axis_ ## name = {__VA_ARGS__} ;
+#define ONBODY(...) __VA_ARGS__ 
 #else
 #define DECLARE_HISTAXIS(prefix, name, bins, min, max) extern HistogramAxis axis_ ## prefix ## _ ## name;
 #define DECLARE_HISTAXIS2(name, ...) extern HistogramAxis axis_ ## name ;
 #define EVNT_IMPL(name)
+#define ONBODY(...)
 #endif
 
 
@@ -136,7 +138,7 @@ double HistogramAxisHandlers_evnt_wrts_diff(CalifaParser* parser,
   int64_t cur1=int64_t(tsmap.at(sys1).whiterabbit);
   int64_t cur2=int64_t(tsmap.at(sys2).whiterabbit);
 
-  #if 0 
+#if 0 
   if (cur1==last1 && cur2==last2) //no new event concerning us
     return NAN;
 
@@ -150,20 +152,6 @@ double HistogramAxisHandlers_evnt_wrts_diff(CalifaParser* parser,
   last2=cur2;
   return (double)(cur1-cur2);
 }
-
-#define WRTSDIFF(name, pos, neg) auto HistogramAxisHandlers_evnt_wrts_diff_ ## name =HistogramAxisHandlers_evnt_wrts_diff<pos,neg>; DECLARE_HISTAXIS(full, wrts_diff_##name, 10000, -100000, 100000); DECLARE_HISTAXIS(lim, wrts_diff_##name, 4000, 0, 4000);
-
-// for trig 1:
-#define WRTS_MES      0x0a00
-#define WRTS_WIX      0x0b00
-#define WRTS_MAIN     0x1000
-#define TRIG3_OFFSET 0x30000
-WRTSDIFF(mes_wix,  WRTS_MES,  WRTS_WIX);
-WRTSDIFF(main_mes, WRTS_MAIN, WRTS_WIX);
-WRTSDIFF(main_wix, WRTS_MAIN, WRTS_WIX);
-WRTSDIFF(t3_mes_wix,  WRTS_MES+TRIG3_OFFSET,  WRTS_WIX+TRIG3_OFFSET);
-WRTSDIFF(t3_main_mes, WRTS_MAIN+TRIG3_OFFSET, WRTS_WIX+TRIG3_OFFSET);
-WRTSDIFF(t3_main_wix, WRTS_MAIN+TRIG3_OFFSET, WRTS_WIX+TRIG3_OFFSET);
 
 template<int sys1>
 double HistogramAxisHandlers_evnt_wrts_ms(CalifaParser* parser, CalifaParser::module_index_t* idx)
@@ -314,11 +302,17 @@ double HistogramAxisHandlers_evnt_pulser(CalifaParser* parser, CalifaParser::mod
   return 1+(5000<en) ;
 }
 
-double HistogramAxisHandlers_evnt_abs_mod(CalifaParser* parser, CalifaParser::module_index_t* idx)
+double HistogramAxisHandlers_evnt_sfp_mod(CalifaParser* parser, CalifaParser::module_index_t* idx)
 {
   if (!idx)
     return NAN;
   return (GET_SFP(*idx)%10)*20+GET_MOD(*idx);
+}
+double HistogramAxisHandlers_evnt_pc_sfp_mod(CalifaParser* parser, CalifaParser::module_index_t* idx)
+{
+  if (!idx)
+    return NAN;
+  return (GET_SFP(*idx)>=20)*80+(GET_SFP(*idx)%10)*20+GET_MOD(*idx);
 }
 
 
@@ -375,6 +369,18 @@ double HistogramAxisHandlers_evnt_petal_(CalifaParser* parser, CalifaParser::mod
 // axis_fbx_sfp0_module filters for sfp0 and returns the module number.
 // 
 
+
+#define WRTSDIFF(name, pos, neg) ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_ ## name =HistogramAxisHandlers_evnt_wrts_diff<pos,neg>;) DECLARE_HISTAXIS(full, wrts_diff_##name, 10000, -100000, 100000); DECLARE_HISTAXIS(lim, wrts_diff_##name, 4000, 0, 4000);
+
+WRTSDIFF(mes_wix,  WRTS_MES,  WRTS_WIX);
+WRTSDIFF(wix_mes,  WRTS_WIX,  WRTS_MES);
+WRTSDIFF(main_mes, WRTS_MAIN, WRTS_WIX);
+WRTSDIFF(main_wix, WRTS_MAIN, WRTS_WIX);
+WRTSDIFF(t3_mes_wix,  WRTS_MES+TRIG3_OFFSET,  WRTS_WIX+TRIG3_OFFSET);
+WRTSDIFF(t3_main_mes, WRTS_MAIN+TRIG3_OFFSET, WRTS_WIX+TRIG3_OFFSET);
+WRTSDIFF(t3_main_wix, WRTS_MAIN+TRIG3_OFFSET, WRTS_WIX+TRIG3_OFFSET);
+
+
 DECLARE_HISTAXIS(hack, psp_sum, 30000, 0, 30000);
 DECLARE_HISTAXIS(hack, psp_diff, 30000, -15000, 15000);
 
@@ -421,7 +427,8 @@ DECLARE_HISTAXIS(fbx,pc_channel,   36, 0, 36);
 DECLARE_HISTAXIS(mesytec,PA_ch,   16, 1, 17);
 DECLARE_HISTAXIS(coinc,pulser, 3, 0, 3);
 DECLARE_HISTAXIS(coinc,ts_diff, 420*2, -420, 420);
-DECLARE_HISTAXIS(coinc,abs_mod, 80, 0, 80);
+DECLARE_HISTAXIS(coinc,sfp_mod, 80, 0, 80);
+DECLARE_HISTAXIS(coinc,pc_sfp_mod, 160, 0, 160);
 DECLARE_HISTAXIS(coinc,multiplicity, 5000, 0, 5000);
 
 //DECLARE_HISTAXIS(coinc,abs_ch, 80*16, 0, 80*16);

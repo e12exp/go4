@@ -29,6 +29,15 @@
 
 #define GET_PETAL(idx) std::get<1>(idx)
 
+
+
+// for trig 1:
+#define WRTS_MES      0x0a00
+#define WRTS_WIX      0x0b00
+#define WRTS_MAIN     0x1000
+#define TRIG3_OFFSET 0x30000
+#define SYNC
+
 class CalifaParser
 {
  public:

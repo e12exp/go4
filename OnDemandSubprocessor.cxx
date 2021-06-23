@@ -49,10 +49,12 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
 
   static HistogramAxis qpid_axis[]={axis_lim_n_f, axis_lim_n_s};
   static HistogramAxis en2_axis[]={axis_lim_cal_en, axis_lim_cal_en};
-  static HistogramAxis module_channel[]={axis_coinc_abs_mod, axis_fbx_pc_channel};
+  static HistogramAxis module_channel[]={axis_coinc_sfp_mod, axis_fbx_pc_channel};
   static HistogramAxis module_mchannel[]={axis_fbx_sfp0_module, axis_mesytec_PA_ch};
-  static HistogramAxis module_ts_diff[]={axis_coinc_abs_mod, axis_coinc_ts_diff};
+  static HistogramAxis module_ts_diff[]={axis_coinc_sfp_mod, axis_coinc_ts_diff};
   static HistogramAxis module_pulser[]={axis_fbx_sfp0_module, axis_coinc_pulser};
+  
+  static HistogramAxis id_vs_wrts[]={axis_coinc_pc_sfp_mod, axis_full_wrts_diff_mes_wix};
 
   static int globals_initialized;
   
@@ -71,15 +73,14 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_diff_main_mes);
       new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_diff_main_wix);
       new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_diff_mes_wix);
-      //static HistogramAxis wrts_diff_febex[]={axis_lim_wrts_diff_califa_main, axis_coinc_abs_mod};
+      new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_diff_t3_mes_wix);
+      new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_diff_wix_mes);
+      new HistFillerSubprocessor<TH(2,I), 1>(&any, id_vs_wrts, 5);
+      //static HistogramAxis wrts_diff_febex[]={axis_lim_wrts_diff_califa_main, axis_coinc_sfp_mod};
       //new HistFillerSubprocessor<TH(2,I), 1>(&any, wrts_diff_febex);
       auto ch=IDX(0, 1, 0);
-      new HistFillerSubprocessor<TH(1,I), 1>(&ch, &axis_full_wrts_diff_califa_main);
+      //      new HistFillerSubprocessor<TH(1,I), 1>(&ch, &axis_full_wrts_diff_califa_main);
 
-      static HistogramAxis wrts_diff_en[]={axis_lim_wrts_diff_califa_main, axis_lim2_yenergy};
-      new HistFillerSubprocessor<TH(2,I), 1>(&any, wrts_diff_en, 10);
-      static HistogramAxis wrts_diff_en2[]={axis_lim_wrts_diff_califa_main, axis_lim2_energy};
-      new HistFillerSubprocessor<TH(2,I), 1>(&any, wrts_diff_en2, 10);
 
       new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_ms_califa);
       //      new HistFillerSubprocessor<TH(1,I), 1>(&evt, &axis_full_wrts_ms_ams);
