@@ -107,9 +107,24 @@ class CalifaParser
      }
     return midx;
   }
+  uint32_t flattenIdx(module_index_t m)
+  {
+    // to avoid explicitly casting GET_ to uint32_t before shifting:
+    uint32_t res=0;
+    res+=GET_TYPE(m); res<<=8;
+    res+=GET_SFP(m);  res<<=8;
+    res+=GET_MOD(m);  res<<=8;
+    res+=GET_CH(m);
+    return res;
+  }
+
+  uint64_t ch_ts()
+  {
+    
+  }
   
   typedef std::map<module_index_t, eventinfo_t> eventmap_t;
-  typedef std::map<uint32_t, timestamp_t>  tsmap_t;
+  typedef std::map<uint64_t, timestamp_t>  tsmap_t;
 
 
   CalifaParser();

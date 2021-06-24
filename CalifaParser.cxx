@@ -27,6 +27,7 @@ void CalifaParser::reset()
 
 int CalifaParser::parseGo4(TGo4MbsEvent* fInput)
 {
+  linfo("CalifaParser::parseGo4 .=========================================================================================\n");
   if (fInput == 0) {
     linfo("AnlProc: no input event !\n");
     return 1;
@@ -72,6 +73,7 @@ int CalifaParser::parseGo4(TGo4MbsEvent* fInput)
 //len in words of 4 bytes
 int CalifaParser::parseSubEvent(TGo4MbsSubEvent* psubevt)
 {
+  linfo("parsing subevent ====================\n");
   auto p=(uint32_t*)psubevt->GetDataField();
   auto len=psubevt->GetIntLen();
   if (!p)
@@ -86,7 +88,7 @@ int CalifaParser::parseSubEvent(TGo4MbsSubEvent* psubevt)
   else if (ts_ret<0) //ignore positive errors here.
     {
       linfo("bad WRTS.\n");
-      return -1; //a timestamp with a bad magic number
+      //return -1; //a timestamp with a bad magic number
     }
   else // positive error=> no ts info.
     {
@@ -164,7 +166,7 @@ int CalifaParser::parseTimestamp(uint32_t *&p, uint32_t* p_end)
 
   ts->whiterabbit = 0;
   ts->titris = 0;
-  linfo("timestamp found with system id 0x%x\n", system_id);
+  linfo("potential timestamp found with system id 0x%x\n", system_id);
   while(data < p_end && *data == system_id)
     {
       data++; //only increment if loop condition holds. 

@@ -1,5 +1,5 @@
 #!/bin/bash
-test -x sourceme.sh && source sourceme.sh
+test -f sourceme.sh && source sourceme.sh
 
 rm -f Go4AutoSave.root # die in a fire
 
