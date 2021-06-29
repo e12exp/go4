@@ -6,13 +6,13 @@
 template<class T, int nAxis>
 struct SingleHistSubprocessorHelper
 {
-  static T* createHist(std::string name, HistogramAxis* ha, int rebin );
+  static T* createHist(std::string name, std::array<HistogramAxis, nAxis> ha, int rebin );
 };
 
 template<class T>
 struct SingleHistSubprocessorHelper<T,1>
 {
-  static T* createHist(std::string name, HistogramAxis* ha, int rebin )
+  static T* createHist(std::string name, std::array<HistogramAxis, 1> ha, int rebin )
   {
     T* h= new T(name.c_str(), name.c_str(),
 		ha[0].nBins/rebin, ha[0].min, ha[0].max);
@@ -24,7 +24,7 @@ struct SingleHistSubprocessorHelper<T,1>
 template<class T>
 struct SingleHistSubprocessorHelper<T,2>
 {
-  static T* createHist(std::string name, HistogramAxis* ha, int rebin )
+  static T* createHist(std::string name, std::array<HistogramAxis, 2> ha, int rebin )
   {
     T* h= new T(name.c_str(), name.c_str(),
 		ha[0].nBins/rebin, ha[0].min, ha[0].max,
@@ -53,7 +53,10 @@ SingleHistSubprocessor<T, nAxis>::SingleHistSubprocessor(std::string name,
   if(histmap.count(name)==0)
     {
       HistogramAxis tmp={"tmp", nbins, lowerLimit, upperLimit, NULL, 0};
-      this->h=SingleHistSubprocessorHelper<T, nAxis>::createHist(name, &tmp, 1);
+      std::array<HistogramAxis, nAxis> ha{tmp};
+      for (int i=0; i<nAxis; i++)
+        ha[i]=tmp;
+      this->h=SingleHistSubprocessorHelper<T, nAxis>::createHist(name, ha, 1);
       histmap[name]=this->h;
     }
   else
@@ -71,7 +74,7 @@ SingleHistSubprocessor<T, nAxis>::SingleHistSubprocessor(std::string name,
 
 template<class T, int nAxis>
 SingleHistSubprocessor<T, nAxis>::SingleHistSubprocessor(std::string name,
-							 HistogramAxis* ha,
+                                                         std::array<HistogramAxis, nAxis> ha,                                    
 							 int rebin)
 {
   if(histmap.count(name)==0)

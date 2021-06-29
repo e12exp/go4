@@ -8,9 +8,9 @@
 #include <utility>
 
 template<class HistType, int nAxis, int nIdx, bool hasWeight>
-HistFillerSubprocessor<HistType, nAxis, nIdx, hasWeight>::HistFillerSubprocessor(module_index_t idx[nIdx],
-								      HistogramAxis h[nAxis],
-								      int rebin):
+HistFillerSubprocessor<HistType, nAxis, nIdx, hasWeight>::HistFillerSubprocessor(std::array<module_index_t, nIdx> idx,
+                                                                                 std::array<HistogramAxis, nAxis> h,
+                                                                                 int rebin):
   SingleHistSubprocessor<HistType, nAxis>
   (this->makeHistName(idx, h), h, rebin)
 {
@@ -127,7 +127,8 @@ static void appendIdxPath(char* buf, size_t totlen, const char* prefix, CalifaPa
 
 
 template<class HistType, int nAxis, int nIdx, bool hasWeight>
-const char*  HistFillerSubprocessor<HistType, nAxis, nIdx, hasWeight>::makeHistName(CalifaParser::module_index_t idx[nAxis], HistogramAxis h[nAxis])
+const char*  HistFillerSubprocessor<HistType, nAxis, nIdx, hasWeight>::makeHistName(std::array<CalifaParser::module_index_t, nIdx> idx,
+                                                                                    std::array<HistogramAxis, nAxis> h)
 {
   //    char* buf=(char*)malloc(200);
   char* buf=(char*)malloc(200); //we are dealing with ROOT, a bit of memory will always leak
@@ -182,9 +183,12 @@ const char* makeHistName(char* base, CalifaParser::module_index_t  *idx)
 
 #include <TH1I.h>
 
-template class HistFillerSubprocessor<TH(1, I), 1>;
-template class HistFillerSubprocessor<TH(2, I), 1>;
-template class HistFillerSubprocessor<TH(2, I), 2>;
-template class HistFillerSubprocessor<TH(1, I), 2, 1>; // test only
+ template class HistFillerSubprocessor<TH(1, I), 1>;
+ template class HistFillerSubprocessor<TH(2, I), 1>;
 
-template class HistFillerSubprocessor<TH2I, 2, 3, 1>;
+ template class HistFillerSubprocessor<TH(2, I), 2> ;
+ template class HistFillerSubprocessor<TH(1, I), 2, 1>; // test only
+
+ template class HistFillerSubprocessor<TH2I, 2, 3, 1> ;
+
+//class foo: public HistFillerSubprocessor<TH(1, I), 1, 0> {};

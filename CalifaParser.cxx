@@ -23,6 +23,8 @@ void CalifaParser::reset()
 	free(it->second.evnt);
   this->eventmap.clear();
   this->multiplicity=0;
+  this->lastSysID=0;
+  this->last_ts=0;
 }
 
 int CalifaParser::parseGo4(TGo4MbsEvent* fInput)
@@ -153,6 +155,10 @@ CalifaParser::tsmap_t* CalifaParser::getTimestamps()
 {
   return &(this->tsmap);
 }
+uint64_t CalifaParser::getLastTS()
+{
+  return this->last_ts;
+}
 
 //  event_t evts;
 //  gosip_t gossip;
@@ -189,7 +195,7 @@ int CalifaParser::parseTimestamp(uint32_t *&p, uint32_t* p_end)
 	  //			printf("WR TS for 0x%x: 0x%016llx\n", system_id, ts->whiterabbit);
 	  break;
 	default:
-	  lerror("Unknown timestamp ID 0x%02x\n", *data & 0xffff0000);
+	  //lerror("Unknown timestamp ID 0x%02x\n", *data & 0xffff0000);
 	  return -1; //unknown timestamp
 	}
     }
@@ -215,7 +221,7 @@ int CalifaParser::parseTimestamp(uint32_t *&p, uint32_t* p_end)
         }
 #endif      
       this->lastSysID=system_id+offset;
-      this->last_ts=*ts;
+      this->last_ts=ts->whiterabbit;
       p=data;
       return 0;
     }
@@ -368,7 +374,7 @@ int CalifaParser::parseCalifaHit(uint32_t *&pl_tmp,
 	  free(ei->evnt);
 	}
       ei->evnt=evnt;
-      ei->wrts=this->last_ts.whiterabbit;
+      ei->wrts=this->last_ts;
     }
   else
     {

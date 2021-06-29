@@ -24,7 +24,9 @@
 #define GET_TYPE(idx) std::get<0>(idx)
 #define GET_SFP(idx)  std::get<1>(idx)
 #define GET_MOD(idx)  std::get<2>(idx)
-#define GET_CH(idx)   std::get<3>(idx) 
+#define GET_CH(idx)   std::get<3>(idx)
+#define GET_SFP_PURE(idx) (GET_SFP(idx)%10)
+
 #define IDX_WILDCARD ((uint8_t)254)
 
 #define GET_PETAL(idx) std::get<1>(idx)
@@ -118,10 +120,6 @@ class CalifaParser
     return res;
   }
 
-  uint64_t ch_ts()
-  {
-    
-  }
   
   typedef std::map<module_index_t, eventinfo_t> eventmap_t;
   typedef std::map<uint64_t, timestamp_t>  tsmap_t;
@@ -145,6 +143,7 @@ class CalifaParser
   {
     return multiplicity;
   }
+  uint64_t getLastTS();
   
  protected:
   static const uint32_t _SYSIDS[];
@@ -156,7 +155,7 @@ class CalifaParser
   std::map<module_index_t, event_t> virtevents; // persistant allocation for non-fbx-channel events
   eventmap_t eventmap;
   tsmap_t tsmap;
-  timestamp_t last_ts;
+  uint64_t last_ts;
   uint32_t lastSysID;
   uint32_t subevent_count;
   unsigned int multiplicity;

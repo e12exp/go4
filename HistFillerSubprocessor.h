@@ -2,6 +2,7 @@
 #define _HistFillerSubprocessor_h
 #include "SingleHistSubprocessor.h"
 #include <cstdbool>
+#include <type_traits>
 
 template<class HistType, int nAxis, int nIdx, bool hasWeight=0>
   class HistFillerSubprocessor:
@@ -18,12 +19,31 @@ template<class HistType, int nAxis, int nIdx, bool hasWeight=0>
   typedef CalifaParser::module_index_t module_index_t;
   //  typename SingleHistSubprocessor<HistType, nAxis>::module_index_t module_index_t;
   //new constructor: provide HistogramAxis
-  HistFillerSubprocessor( module_index_t idx[nIdx],
-			  HistogramAxis h[nAxis],
+  HistFillerSubprocessor( std::array<module_index_t, nIdx> idx,
+			  std::array<HistogramAxis, nAxis>,
 			  int rebin=1);
-  
-  const char* makeHistName(CalifaParser::module_index_t idx[nAxis], HistogramAxis h[nAxis]);
 
+  template<class T>
+  HistFillerSubprocessor( std::array<module_index_t, nIdx> idx,
+                          T h,
+                          int rebin=1) : HistFillerSubprocessor(idx, std::array<HistogramAxis, 1>{h}, rebin)
+  {}
+  
+  template<class T>
+  HistFillerSubprocessor( T idx,
+			  std::array<HistogramAxis, nAxis> h,
+                          int rebin=1) : HistFillerSubprocessor(std::array<module_index_t, 1>{idx}, h, rebin)
+  {}
+
+  template<class T>
+  HistFillerSubprocessor( T idx,
+                          HistogramAxis h,
+                          int rebin=1) : HistFillerSubprocessor(std::array<module_index_t, 1>{idx},  std::array<HistogramAxis, 1>{h}, rebin)
+  {}
+
+  
+  const char* makeHistName(std::array<CalifaParser::module_index_t, nIdx> idx,
+                           std::array<HistogramAxis, nAxis> h);
   virtual void processEvent(CalifaParser* p);
  protected:
   virtual void processEventIdx(CalifaParser* p, module_index_t idx[nIdx]);
@@ -41,5 +61,6 @@ template<class HistType, int nAxis, int nIdx, bool hasWeight=0>
 };
 
 const char* makeHistName(char* base, CalifaParser::module_index_t* idx);
+
 
 #endif

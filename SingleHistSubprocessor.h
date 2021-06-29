@@ -13,13 +13,19 @@ class SingleHistSubprocessor: public virtual CalifaSubprocessor
 {
  public:
   typedef CalifaParser::module_index_t module_index_t;
+  
   SingleHistSubprocessor(std::string name,
 			 int nbins,
 			 double upperLimit, 
 			 double lowerLimit=0.0
 			 );
-  SingleHistSubprocessor(std::string name,
+  /*
+    SingleHistSubprocessor(std::string name,
 			 HistogramAxis* h,
+			 int rebin=1);*/
+  
+  SingleHistSubprocessor(std::string name,
+			 std::array<HistogramAxis, nAxis> h,
 			 int rebin=1);
 
   //overload to fill histogram

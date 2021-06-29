@@ -3,6 +3,9 @@
 #include <string>
 #include <stdint.h>
 #include <unistd.h>
+#define LOGLEVEL 1
+
+
 int logmsg(int type,  std::string format, ...)
 {
   va_list args2;

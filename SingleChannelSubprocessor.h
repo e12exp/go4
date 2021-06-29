@@ -26,4 +26,5 @@ class SingleChannelSubprocessor: public SingleHistSubprocessor<TH1D, 1>
 
   module_index_t idx;
 };
+
 #endif
