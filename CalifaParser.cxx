@@ -389,7 +389,7 @@ int CalifaParser::parseCalifaHit(uint32_t *&pl_tmp,
 
   if(evnt->size > processed_size && (*pl_tmp >> 16) == 0xBEEF)
     {
-      lerror("found TOT data");
+      //lerror("found TOT data");
       //time over threshold
 	  uint16_t tot = *pl_tmp++ & 0xffff;
       if (!skip)

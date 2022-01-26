@@ -1,2 +1,2 @@
 libfixsignals.so: fixsignals.c
-	gcc -fPIC  -shared -o libfixsignals.so $<
+	gcc -std=c99 -ldl -fPIC  -shared -o libfixsignals.so $<

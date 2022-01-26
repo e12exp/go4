@@ -22,7 +22,7 @@
 
 static void getHistname(char out[NAME_LEN], const char* basename, uint8_t sfp, uint8_t module, uint8_t channel)
 {
-  snprintf(out, 256, "Analysis/Histograms/%s/sfp_%01d/febex_%02d/%s_%01d_%02d_%02d", 
+  snprintf(out, NAME_LEN, "Analysis/Histograms/%s/sfp_%01d/febex_%02d/%s_%01d_%02d_%02d", 
 	   basename,
 	   sfp, module,
 	   basename,
@@ -31,18 +31,18 @@ static void getHistname(char out[NAME_LEN], const char* basename, uint8_t sfp, u
 }
 
 typedef std::map<std::pair<std::string, Int_t>,
-		 std::function<void(char[NAME_LEN], uint8_t, uint8_t)> > onClickMap_t;
+		 std::function<void(char[NAME_LEN], uint8_t, uint8_t, uint8_t)> > onClickMap_t;
 
 #define kButton3Down 12 // not kButton2Up
 static onClickMap_t onClickMap={
   {{"coinc_sfp_mod_vs_fbx_pc_channel", kButton1Down},
-   [](char* out, int m, int c){getHistname(out, "lim_energy", m/20, m%20, c);}},
+   [](char* out, int s, int m, int c){getHistname(out, "lim_energy", s, m, c);}},
   {{"coinc_sfp_mod_vs_fbx_pc_channel", kButton3Down},
-   [](char* out, int m, int c){getHistname(out, "trace_last", m/20, m%20, c);}},
+   [](char* out, int s, int m, int c){getHistname(out, "trace_last", s, m, c);}},
   {{"coinc_sfp_mod_vs_fbx_pc_channel", kWheelUp},
-   [](char* out, int m, int c){getHistname(out, "full_energy", m/20, m%20, c);}},
+   [](char* out, int s, int m, int c){getHistname(out, "full_energy", s, m, c);}},
   {{"coinc_sfp_mod_vs_fbx_pc_channel", kWheelDown},
-   [](char* out, int m, int c){getHistname(out, "lim_n_f_vs_lim_n_s", m/20, m%20, c);}}
+   [](char* out, int s, int m, int c){getHistname(out, "lim_n_f_vs_lim_n_s", s, m, c);}}
 };
 
 
@@ -62,11 +62,15 @@ void THistPainter::ExecuteEvent(Int_t event, Int_t px, Int_t py)
   auto key=std::make_pair(std::string(this->fH->GetName()), event);
   if (onClickMap.count(key))
     {
-      int mod=floor(gPad->AbsPixeltoX(px));
-      int ch= floor(gPad->AbsPixeltoY(py));
+      int x=floor(gPad->AbsPixeltoX(px));  //sfp, module
+      int y= floor(gPad->AbsPixeltoY(py)); //pc, channel
+      int pc=(y<20)?10:20;
+      int sfp=x/20;
+      int mod=x%20;
+      int ch=y%20;
       
       char item[NAME_LEN];
-      onClickMap[key](item, mod, ch);
+      onClickMap[key](item, pc+sfp, mod, ch);
       bool ret=TGo4Script::ScriptInstance()->DrawItem(item);
       printf("DrawItem(%s) returned %d\n", item, ret);
       return;

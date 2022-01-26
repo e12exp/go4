@@ -88,7 +88,7 @@ SingleHistSubprocessor<T, nAxis>::SingleHistSubprocessor(std::string name,
       printf("using existing %s\n",  this->h->GetName());
     }
   this->name=name;
-  printf("created %s\n", this->h->GetName());
+  //printf("created %s\n", this->h->GetName());
   this->registerObject(this->h);
 }
 

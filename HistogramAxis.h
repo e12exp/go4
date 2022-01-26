@@ -82,12 +82,108 @@ double HistogramAxisHandlers_evnt_sfp0_module_dual(CalifaParser* parser,
   return GET_MOD(*idx)+10*(en>5000 );
 }
 
+double HistogramAxisHandlers_evnt_trace_sample(CalifaParser* parser,
+                                               CalifaParser::module_index_t* idx)
+{
+  GETEVNT;
+  return (evnt->cfd_samples[0]);
+}
+
+template <int offset, int modulus>
+double HistogramAxisHandlers_evnt_dr(CalifaParser* parser,
+                                     CalifaParser::module_index_t* idx)
+{
+  GETEVNT;
+  if (evnt->energy<200) // low energy stuff, might not be real
+    return NAN;
+  if (GET_SFP_PURE(*idx)==0
+      ||GET_SFP_PURE(*idx)==3)
+    return NAN; // single range barrel section
+  if (GET_MOD(*idx)%2 != modulus)
+    return NAN;
+  uint8_t newmod= GET_MOD(*idx)+offset;
+  
+  CalifaParser::module_index_t shifted=std::make_tuple(GET_TYPE(*idx), GET_SFP(*idx), newmod, GET_CH(*idx));
+  if (!parser->getCalifaEvents()->count(shifted)
+      || !parser->getCalifaEvents()->at(shifted).evnt)
+    return 0.0; // not triggered: energy 0
+  return parser->getCalifaEvents()->at(shifted).evnt->energy;
+}
+
+
+
 double HistogramAxisHandlers_evnt_multiplicity(CalifaParser* parser,
 					       CalifaParser::module_index_t* idx)
 {
   if (!parser)
     return NAN;
   return parser->getMultiplicity();
+}
+
+template<class T>
+uint8_t bitcount(T x)
+{
+  uint8_t res=0;
+  T current=1;
+  while(current)
+    {
+      res+=bool(x & current);
+      current<<=1;
+    }
+  return res;
+}
+
+double HistogramAxisHandlers_evnt_overflow_cnt(CalifaParser* parser,
+					       CalifaParser::module_index_t* idx)
+{
+  GETEVNT;
+  
+  return bitcount(evnt->overflow);
+}
+
+double HistogramAxisHandlers_evnt_overflow_worst(CalifaParser* parser,
+                                                CalifaParser::module_index_t* idx)
+{
+  // per f_user, max's firmware uses the following overflow bits:
+  /*
+    0: "CFD",
+    1: "Baseline",
+    2: "MAU",
+    3: "MWD",
+
+    4: "PeakSensing",
+    5: "E -> Event Buffer",
+    6: "Trace -> Event Buffer",
+    7: "Nf -> Event Buffer",
+
+    8: "Ns -> Event Buffer",
+    9: "ADC",
+   10: "ADC Underflow",
+   11: "QPID Nf",
+
+   12: "QPID Ns"
+   13: "TOT Input",
+   14: "TOT",
+   15: "Unknown?!" // lets make sure we have 16 accessible elements here --pklenze
+  */
+  GETEVNT;
+  // strategy: return just an id for the earliest overflow in the foodchain.
+  // E beats QPID beats ToT beats CFD beats trace
+  if (!evnt->overflow)          // no overflows, default case
+    return 0;
+  if (evnt->overflow & (1<<9))  // ADC overflow
+    return 1;
+  if (evnt->overflow & (1<<10)) // ADC underflow
+    return 2;
+  if (evnt->overflow & 0xe)     // baseline, mau, mwd
+    return 3;
+  if (evnt->overflow & 0x30)    // PeakSensing, E -> Event Buffer
+    return 4;
+  if (evnt->overflow & 0x1f80)  // QPID, Nf, Ns
+    return 5;
+  if (evnt->overflow & 0x6000)  // TOT
+    return 6;
+  return 7;    
 }
 
 
@@ -109,7 +205,7 @@ double HistogramAxisHandlers_evnt_wrts_diff_ref(CalifaParser* parser,
     GETEVNT;
     if (!valid_t::apply(idx))
       return NAN;
-    int64_t own_ts=parser->getLastTS();
+    int64_t own_ts=ei.wrts;
     auto& tsmap=*(parser->getTimestamps());
     if (!tsmap.count(ref_sys) || ! own_ts)
       return NAN;
@@ -174,9 +270,9 @@ double HistogramAxisHandlers_evnt_wrts_ms(CalifaParser* parser, CalifaParser::mo
 
 #define WRTSMS(name, sys) auto HistogramAxisHandlers_evnt_wrts_ms_ ## name =HistogramAxisHandlers_evnt_wrts_ms<sys>;
 
-WRTSMS(califa, 0x400)
-WRTSMS(ams, 0x300)
-WRTSMS(main, 0x100)
+WRTSMS(mes, 0xa00)
+WRTSMS(wix, 0xb00)
+WRTSMS(main, 0x1000)
 
 template<int sys1>
 double HistogramAxisHandlers_evnt_wrts_skip(CalifaParser* parser, CalifaParser::module_index_t* idx)
@@ -195,9 +291,9 @@ double HistogramAxisHandlers_evnt_wrts_skip(CalifaParser* parser, CalifaParser::
 
 #define WRTSSKIP(name, sys) auto HistogramAxisHandlers_evnt_wrts_skip_ ## name =HistogramAxisHandlers_evnt_wrts_skip<sys>;
 
-WRTSSKIP(califa, 0x400)
-WRTSSKIP(ams, 0x300)
-WRTSSKIP(main, 0x100)
+WRTSSKIP(mes, 0xa00)
+WRTSSKIP(wix, 0xb00)
+WRTSSKIP(main, 0x1000)
 
 
 template <int sfpNo>
@@ -376,6 +472,7 @@ ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_main_comp = HistogramAxisHandle
 ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_main_comp_master = HistogramAxisHandlers_evnt_wrts_diff_ref_comp<WRTS_MAIN, master>;)
 ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_main_comp_slave = HistogramAxisHandlers_evnt_wrts_diff_ref_comp<WRTS_MAIN, slave>;)
 ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_main_comp_special = HistogramAxisHandlers_evnt_wrts_diff_ref_comp<WRTS_MAIN, special>;)
+ONBODY(auto HistogramAxisHandlers_evnt_dr_gamma = HistogramAxisHandlers_evnt_dr<+1, 0>;)
 
 DECLARE_HISTAXIS(lim, wrts_diff_main, 4000, 0, 4000);
 DECLARE_HISTAXIS(full, wrts_diff_main, 10000, 0, 100000);
@@ -394,18 +491,22 @@ DECLARE_HISTAXIS(lim, wrts_diff_main_comp_special,  4000, 0, 4000);
 //DECLARE_HISTAXIS(full, wrts_diff_califa_main, 10000, -100000, 100000);
 //DECLARE_HISTAXIS(lim, wrts_diff_califa_main, 4000, 0, 4000);
 
-DECLARE_HISTAXIS(full, wrts_ms_califa, 100000, 0, 100000);
+DECLARE_HISTAXIS(full, wrts_ms_mes, 100000, 0, 100000);
+DECLARE_HISTAXIS(full, wrts_ms_wix, 100000, 0, 100000);
 DECLARE_HISTAXIS(full, wrts_ms_main, 100000, 0, 100000);
-DECLARE_HISTAXIS(full, wrts_ms_ams, 100000, 0, 100000);
+//DECLARE_HISTAXIS(full, wrts_ms_ams, 100000, 0, 100000);
 
-DECLARE_HISTAXIS(full, wrts_skip_califa, 10000, 0, 1000000);
+DECLARE_HISTAXIS(full, wrts_skip_mes, 10000, 0, 1000000);
+DECLARE_HISTAXIS(full, wrts_skip_wix, 10000, 0, 1000000);
 DECLARE_HISTAXIS(full, wrts_skip_main,   10000, 0, 1000000);
-DECLARE_HISTAXIS(full, wrts_skip_ams,    10000, 0, 1000000);
+//DECLARE_HISTAXIS(full, wrts_skip_ams,    10000, 0, 1000000);
 
 
 DECLARE_HISTAXIS(full, energy, 65536, -32768, 32768);
+DECLARE_HISTAXIS(full2, energy, 1<<9, 0, 32768);
 DECLARE_HISTAXIS(lim,  energy, 4000, 0, 4000);
 DECLARE_HISTAXIS(lim2,  energy, 8000, 0, 8000);
+DECLARE_HISTAXIS(lim2,  dr_gamma, 1<<9, 0, 32768);
 //DECLARE_HISTAXIS(lim2,  energy, 4096, 0, 32768);
 DECLARE_HISTAXIS(lim2,  yenergy, 4096, 0, 32768);
 
@@ -424,12 +525,16 @@ DECLARE_HISTAXIS(full, tot, 65536, -32768, 32768);
 DECLARE_HISTAXIS(full, num_pileup, 100, 0, 100);
 DECLARE_HISTAXIS(full, num_discarded, 100, 0, 100);
 
+DECLARE_HISTAXIS(full,trace_sample,  1<<14, 0, 1<<14);
+DECLARE_HISTAXIS(lim,trace_sample,  1<<8, 0, 1<<14);
+
 DECLARE_HISTAXIS(fbx,sfp0_module, 19, 0, 19);
 DECLARE_HISTAXIS(fbx,sfp1_module, 19, 0, 19);
 DECLARE_HISTAXIS(fbx,sfp2_module, 19, 0, 19);
 DECLARE_HISTAXIS(fbx,sfp3_module, 19, 0, 19);
 DECLARE_HISTAXIS(fbx,channel,     16, 0, 16);
 DECLARE_HISTAXIS(fbx,pc_channel,   36, 0, 36);
+DECLARE_HISTAXIS(fbx,overflow_worst, 8, 0, 8);
 DECLARE_HISTAXIS(mesytec,PA_ch,   16, 1, 17);
 DECLARE_HISTAXIS(coinc,pulser, 3, 0, 3);
 DECLARE_HISTAXIS(coinc,ts_diff, 420*2, -420, 420);

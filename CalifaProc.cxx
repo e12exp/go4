@@ -79,7 +79,7 @@ void CalifaProc::registerObject(TObject* o)
 	  buf[idx]=0;
 	  dir=buf;
 	  h->SetName(buf+idx+1);
-	  lerror("%s:%s\n", buf, buf+idx+1);
+	  //lerror("%s:%s\n", buf, buf+idx+1);
 	}
       this->go4ep->AddHistogram(h, dir);
     }
