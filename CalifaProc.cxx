@@ -147,6 +147,8 @@ void CalifaProc::setGo4EP(TGo4EventProcessor* go4ep)
 Bool_t CalifaProc::BuildEvent(TGo4EventElement * target)
 {
   ldbg("**** CalifaProc: new event\n");
+  printf("foo!\n");
+
   this->registerNewHistograms();
   auto fInput = dynamic_cast<TGo4MbsEvent *>(this->go4ep->GetInputEvent());
 

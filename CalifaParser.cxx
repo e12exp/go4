@@ -7,10 +7,22 @@
 #include <list>
 
 #include <algorithm>
+#ifndef INF
+#define INF INFINITY
+#endif
 
 CalifaParser::CalifaParser(): eventmap(), tsmap(), subevent_count(0), multiplicity(0)
 {
   memset(&last_ts, 0, sizeof(last_ts));
+  if (CHECK_EVT_TYPE)
+    {
+      fprintf(stderr, "CalifaParser: will IGNORE any events not matching PROC=0x%x, EVT=0x%x, SUBEVT=0x%x\n\n",
+              FEBEX_PROC_ID, FEBEX_EVT_TYPE, FEBEX_SUBEVT_TYPE);
+    }
+  else
+    {
+      fprintf(stderr, "CalifaParser:Will try to parse EVERYTHING as CALIFA febex data!\n");
+    }
   //initialize stuff
   //this->eventmap();
 }
@@ -100,8 +112,9 @@ int CalifaParser::parseSubEvent(TGo4MbsSubEvent* psubevt)
   uint32_t subevt_type = psubevt->GetSubtype();
   uint32_t procid = psubevt->GetProcid();
   uint8_t control=psubevt->GetControl();
-  
-  if(evt_type != FEBEX_EVT_TYPE || subevt_type != FEBEX_SUBEVT_TYPE || procid != FEBEX_PROC_ID)
+
+  if (CHECK_EVT_TYPE
+      && (evt_type != FEBEX_EVT_TYPE || subevt_type != FEBEX_SUBEVT_TYPE || procid != FEBEX_PROC_ID))
     {
       linfo("ignored event with evt_type=0x%x, subevent_type=0x%x, procid=0x%x\n", evt_type, subevt_type, procid);
       return 0; 
@@ -457,3 +470,42 @@ int CalifaParser::parseCalifaHit(uint32_t *&pl_tmp,
   return 0;
 }
 
+void CalifaParser::traceAnalysis(eventinfo_t* ei)
+{
+  if (!ei->trace)
+    {
+      ei->trace_start=-1; // which sample of the trace has the highest slope?
+      ei->max_slope=NAN;  // what is that slope
+      ei->trace_en=NAN;   // what is the difference between the maximum of the trace and the baseline before?
+      return;
+    }
+
+  auto& trace_start=ei->trace_start;
+  auto& max_slope=ei->max_slope;
+  
+  trace_start=-1;
+  max_slope=-INF;
+  
+  for (int i=0; i<ei->tracepoints-1; i++)
+    {
+      double s=getTracePoint(ei, i+1)-getTracePoint(ei, i);
+      if (s>max_slope)
+        {
+          max_slope=s;
+          trace_start=i;
+        }
+    }
+
+
+  double trace_max=-INF;
+  for (int i=0; i<ei->tracepoints; i++)
+    {
+      double s=getTracePoint(ei, i);
+      if (s>trace_max)
+        trace_max=s;
+    }
+  
+  ei->trace_en=trace_max-getTracePoint(ei, 0); // cheap
+  
+
+}

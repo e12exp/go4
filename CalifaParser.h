@@ -43,6 +43,8 @@
 class CalifaParser
 {
  public:
+  static const bool CHECK_EVT_TYPE=false;
+  // if true, skip anything not matching:
   static const uint32_t FEBEX_PROC_ID=0xd;
   static const uint32_t FEBEX_EVT_TYPE=0x64;
   static const uint32_t FEBEX_SUBEVT_TYPE=0x2710;
@@ -167,6 +169,7 @@ class CalifaParser
   module_index_t parseGosipHeader(uint32_t* &p, eventinfo_t*&, uint32_t*&, uint8_t control);
   int parseCalifaHit(uint32_t *&pl_tmp, eventinfo_t* ei, module_index_t idx);
   void reset();
+  static void traceAnalysis(eventinfo_t*);
 };
 
 #endif

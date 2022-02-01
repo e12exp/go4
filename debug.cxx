@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <unistd.h>
 #define LOGLEVEL 1
+// 0: fatal only
+// 3: debug
+
 
 
 int logmsg(int type,  std::string format, ...)
