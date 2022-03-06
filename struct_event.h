@@ -5,6 +5,7 @@
 #ifndef _PACKED
 #define _PACKED  //__attribute__ ((packed))
 #endif
+#include <assert.h>
 
 extern "C"
 {
@@ -46,6 +47,8 @@ typedef struct trace_head
     uint16_t u[1];
   } points _PACKED;
 
+  // Note: points[0] seems not to be valid data, skip it!
+
 }
 trace_head_t;
 } //extern "C"
@@ -57,6 +60,7 @@ inline double getTracePoint(struct trace_head* h, int n, bool sign=SIGNED_TRACES
 {
   //printf("%d\n", h->type);
   //if (h->type==3 || h->type==4)
+  assert(n>=1);
   if (sign)
     return h->points.s[n];
   else

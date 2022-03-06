@@ -17,13 +17,18 @@
   GETPARSER\
   if (!idx || !parser->getCalifaEvents()->count(*idx))\
     return NAN;                                       \
-  auto ei=parser->getCalifaEvents()->at(*idx);
+  auto& ei=parser->getCalifaEvents()->at(*idx);
 #define GETEVNT GETEVENTINFO              \
   if (!ei.evnt)                           \
     return NAN;                           \
   auto evnt=ei.evnt;
+#define DECLARE_EVNTINFO(name) double  HistogramAxisHandlers_evnt_##name(CalifaParser* parser, CalifaParser::module_index_t* idx) EVNTINFO_IMPL(name)
+// ^-- read a field from an eventinfo_t
 #define DECLARE_EVNT(name) double  HistogramAxisHandlers_evnt_##name(CalifaParser* parser, CalifaParser::module_index_t* idx) EVNT_IMPL(name)
+// ^-- read a field from a struct_event
+
 #if NEED_BODIES
+#define EVNTINFO_IMPL(name) { GETEVENTINFO; return ei.name ; }
 #define EVNT_IMPL(name)   { GETEVNT; return evnt->name; }
 #define DECLARE_HISTAXIS(prefix, name, bins, min, max) HistogramAxis axis_ ## prefix ## _ ## name = {#prefix "_" #name, bins, min, max, HistogramAxisHandlers_evnt_##name, 0};
 #define DECLARE_HISTAXIS2(name, ...) HistogramAxis axis_ ## name = {__VA_ARGS__} ;
@@ -31,7 +36,8 @@
 #else
 #define DECLARE_HISTAXIS(prefix, name, bins, min, max) extern HistogramAxis axis_ ## prefix ## _ ## name;
 #define DECLARE_HISTAXIS2(name, ...) extern HistogramAxis axis_ ## name ;
-#define EVNT_IMPL(name)
+#define EVNTINFO_IMPL(name) ;
+#define EVNT_IMPL(name) ;
 #define ONBODY(...)
 #endif
 
@@ -63,6 +69,12 @@ protected:
   friend class SingleHistSubprocessor;
 };
 
+DECLARE_EVNTINFO(max_slope);
+DECLARE_EVNTINFO(trace_start);
+DECLARE_EVNTINFO(trace_en);
+DECLARE_EVNTINFO(trace0);
+DECLARE_EVNTINFO(trace_en_diff);
+DECLARE_EVNTINFO(bl_slope);
 
 DECLARE_EVNT(energy);
 DECLARE_EVNT(n_f);
@@ -189,6 +201,7 @@ double HistogramAxisHandlers_evnt_overflow_worst(CalifaParser* parser,
 
 
 // this would be nicer with lambdas, but they can not be used as template arguments. :-/
+// (without a different C++ compiler)
 
 // TODO: this is ugly. make cut subprocessors work instead!
 #define MAKE_RESTRICTION(name, expr) struct name {  static bool apply(CalifaParser::module_index_t* idx)  { expr; };};
@@ -353,7 +366,6 @@ double HistogramAxisHandlers_evnt_pc_channel(CalifaParser* parser, CalifaParser:
   return (GET_SFP(*idx)/10-1)*20 + GET_CH(*idx);
 }
 
-
 /*double HistogramAxisHandlers_evnt_one(CalifaParser* parser, CalifaParser::module_index_t* idx)
 {
   return 1;
@@ -409,13 +421,21 @@ double HistogramAxisHandlers_evnt_sfp_mod(CalifaParser* parser, CalifaParser::mo
     return NAN;
   return (GET_SFP(*idx)%10)*20+GET_MOD(*idx);
 }
+
+double HistogramAxisHandlers_evnt_weird_sfp_mod(CalifaParser* parser, CalifaParser::module_index_t* idx)
+{
+  if (!idx || GET_SFP(*idx)/10!=7)
+    return NAN;
+  
+  return (GET_SFP(*idx)%10)*20+GET_MOD(*idx);
+}
+
 double HistogramAxisHandlers_evnt_pc_sfp_mod(CalifaParser* parser, CalifaParser::module_index_t* idx)
 {
   if (!idx)
     return NAN;
   return (GET_SFP(*idx)>=20)*80+(GET_SFP(*idx)%10)*20+GET_MOD(*idx);
 }
-
 
 double HistogramAxisHandlers_evnt_ts_diff(CalifaParser* parser, CalifaParser::module_index_t* idx)
 {
@@ -485,7 +505,6 @@ DECLARE_HISTAXIS(lim, wrts_diff_main_comp_master, 4000, 0, 4000);
 DECLARE_HISTAXIS(lim, wrts_diff_main_comp_slave,  4000, 0, 4000);
 DECLARE_HISTAXIS(lim, wrts_diff_main_comp_special,  4000, 0, 4000);
 
-
 //DECLARE_HISTAXIS(full, wrts_diff_califa_ams, 2000, -100000, 100000);
 //DECLARE_HISTAXIS(full, wrts_diff_main_ams, 2000, -100000, 100000);
 //DECLARE_HISTAXIS(full, wrts_diff_califa_main, 10000, -100000, 100000);
@@ -503,6 +522,17 @@ DECLARE_HISTAXIS(full, wrts_skip_main,   10000, 0, 1000000);
 
 
 DECLARE_HISTAXIS(full, energy, 65536, -32768, 32768);
+
+DECLARE_HISTAXIS(full, trace_en, 1<<13, 0, (1<<15)-1);
+DECLARE_HISTAXIS(full, trace_en_diff, 8000, -16000, 16000);
+DECLARE_HISTAXIS(full, trace0, 1<<13, 0, 1<<14);
+DECLARE_HISTAXIS(full, bl_slope, 200, -100, 100);
+
+
+DECLARE_HISTAXIS(full, trace_start, 1000, 0, 1000);
+DECLARE_HISTAXIS(full, max_slope, 1<<13, 0, (1<<15)-1);
+
+
 DECLARE_HISTAXIS(full2, energy, 1<<9, 0, 32768);
 DECLARE_HISTAXIS(lim,  energy, 4000, 0, 4000);
 DECLARE_HISTAXIS(lim2,  energy, 8000, 0, 8000);
@@ -540,6 +570,8 @@ DECLARE_HISTAXIS(coinc,pulser, 3, 0, 3);
 DECLARE_HISTAXIS(coinc,ts_diff, 420*2, -420, 420);
 DECLARE_HISTAXIS(coinc,sfp_mod, 80, 0, 80);
 DECLARE_HISTAXIS(coinc,pc_sfp_mod, 160, 0, 160);
+DECLARE_HISTAXIS(coinc,weird_sfp_mod, 80, 0, 80);
+
 DECLARE_HISTAXIS(coinc,multiplicity, 5000, 0, 5000);
 
 //DECLARE_HISTAXIS(coinc,abs_ch, 80*16, 0, 80*16);

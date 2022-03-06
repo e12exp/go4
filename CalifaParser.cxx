@@ -289,7 +289,7 @@ CalifaParser::module_index_t CalifaParser::parseGosipHeader(uint32_t *&p,
     }
   else
     {
-      lerror("I do not know about SE_CONTROL==%d, will assign an sfp offset of %d to them.", control, sfp_offset);
+      lerror("I do not know about SE_CONTROL==%d, will assign an sfp offset of %d to them.\n", control, sfp_offset);
     }
   //linfo("found a good event\n");
   module_index_t idx=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx,
@@ -445,7 +445,8 @@ int CalifaParser::parseCalifaHit(uint32_t *&pl_tmp,
     {
       //lerror("No traces found!\n");
     }
-
+  traceAnalysis(ei);
+  
   const std::vector<subEventIdxType> virtevent_types={};//petalIdx};
 
   for (auto& st: virtevent_types)
@@ -485,8 +486,10 @@ void CalifaParser::traceAnalysis(eventinfo_t* ei)
   
   trace_start=-1;
   max_slope=-INF;
+
+  int max=std::min(ei->tracepoints-1, 200U);
   
-  for (int i=0; i<ei->tracepoints-1; i++)
+  for (int i=1; i<max; i++)
     {
       double s=getTracePoint(ei, i+1)-getTracePoint(ei, i);
       if (s>max_slope)
@@ -498,14 +501,24 @@ void CalifaParser::traceAnalysis(eventinfo_t* ei)
 
 
   double trace_max=-INF;
-  for (int i=0; i<ei->tracepoints; i++)
+  for (int i=1; i<max; i++)
     {
       double s=getTracePoint(ei, i);
       if (s>trace_max)
         trace_max=s;
     }
   
-  ei->trace_en=trace_max-getTracePoint(ei, 0); // cheap
+  ei->trace0=getTracePoint(ei, 1);
+  ei->bl_slope=getTracePoint(ei, 11)-getTracePoint(ei, 1);
+
+  if (std::abs(ei->bl_slope)>5)
+    ei->trace0=NAN;
+  ei->trace_en=trace_max-getTracePoint(ei, 1); // cheap
+
+  
+  ei->trace_en_diff=ei->trace_en-ei->evnt->energy;
+  if (ei->evnt->overflow || ei->evnt->num_pileup)
+    ei->trace_en_diff=NAN;
   
 
 }

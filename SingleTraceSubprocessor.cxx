@@ -20,7 +20,8 @@ void SingleTraceSubprocessor::processSubevent(eventinfo_t ei)
 	  this->h->SetBinContent(i, getTracePoint(ei.trace, i));
 	}
       char buf[100];
-      snprintf(buf, 100, "%s en=%d, q_f=%d, q_s=%d, type %d @0x%lx", h->GetName(), ei.evnt->energy, ei.evnt->n_f, ei.evnt->n_s, ei.trace->type, ei.evnt->timestamp);
+      snprintf(buf, 100, "%s en=%d, q_f=%d, q_s=%d, type %d @0x%lx, pileup=%d",
+               h->GetName(), ei.evnt->energy, ei.evnt->n_f, ei.evnt->n_s, ei.trace->type, ei.evnt->timestamp, ei.evnt->num_pileup);
       this->h->SetTitle(buf);
     }
 }

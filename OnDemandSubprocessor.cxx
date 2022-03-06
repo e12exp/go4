@@ -67,6 +67,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       //      new HistFillerSubprocessor<TH(1,I), 1>(&any, &axis_coinc_ts_diff);
 
       new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_coinc_sfp_mod, axis_fbx_pc_channel});
+      new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_coinc_weird_sfp_mod, axis_fbx_channel});
 
       // TIMESTAMP HISTOGRAMS
 
@@ -119,7 +120,10 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       static auto idx_006=IDX(0, 0, 6);
       //new HistFillerSubprocessor<TH(1,I), 1>(&idx_006, &axis_hack_psp_sum);
       //new HistFillerSubprocessor<TH(1,I), 1>(&idx_006, &axis_hack_psp_diff);
+
       globals_initialized++;
+
+      
     }
   
   linfo("adding %d %d %d %d (recurse=%d, tl=%d)\n", GET_TYPE(idx), GET_SFP(idx), GET_MOD(idx), GET_CH(idx),
@@ -231,6 +235,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       //we have found an event without an energy histogram,
       //create one. 
       this->energy_subprocessors[idx]=new HistFillerSubprocessor<TH(1,I), 1>(idx, axis_full_energy);
+      new HistFillerSubprocessor<TH(1,I), 1>(idx, axis_full_num_pileup);
 	//	new ChannelCutHistFillerSubprocessor<TH(1,I), 1>(&idx, &axis_full_energy, 1,
 	//						 &idx, &axis_full_energy);
       new HistFillerSubprocessor<TH(1,I), 1>(idx, axis_lim_energy);
@@ -288,6 +293,25 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
 					idx, tracepoints,
 					F_ADC/2); // for decimated traces. 
       }
+      // trace analysis histograms
+      {
+        std::array<HistogramAxis,2> trace_vs_en_axis={axis_full_energy, axis_full_trace_en};
+
+        new HistFillerSubprocessor<TH(2,I), 1>(idx, trace_vs_en_axis, 10);
+        std::array<HistogramAxis,2> bl_vs_err={axis_full_trace_en_diff, axis_full_trace0};
+        new HistFillerSubprocessor<TH(2,I), 1>(idx, bl_vs_err, 8);
+
+        std::array<HistogramAxis,2> bl={axis_full_bl_slope, axis_full_trace0};
+        new HistFillerSubprocessor<TH(2,I), 1>(idx, bl, 8);
+
+        new HistFillerSubprocessor<TH(1,I), 1>(idx, axis_full_trace_en);
+        new HistFillerSubprocessor<TH(1,I), 1>(idx, axis_full_trace_en_diff);
+
+        new HistFillerSubprocessor<TH(1,I), 1>(idx, axis_full_trace_start);
+        new HistFillerSubprocessor<TH(1,I), 1>(idx, axis_full_max_slope);
+        new HistFillerSubprocessor<TH(1,I), 1>(idx, axis_full_bl_slope);
+      }
+
 
     }
 

@@ -14,8 +14,10 @@ typedef struct eventinfo
   uint32_t tracepoints;
   uint32_t trace_start; // which sample of the trace has the highest slope?
   double max_slope;     // what is that slope
-  double   trace_en;    // what is the difference between the maximum of the trace and the baseline before?
-  
+  double trace_en;      // what is the difference between the maximum of the trace and the baseline before?
+  double trace_en_diff; 
+  double trace0, bl_slope; 
+
   double calEnergy;
   eventinfo& operator+=(event_t* rhs)
   {
