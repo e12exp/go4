@@ -214,9 +214,9 @@ int CalifaParser::parseTimestamp(uint32_t *&p, uint32_t* p_end)
     }
   if (ts->whiterabbit || ts->titris)
     {
-      ts->whiterabbit_prev=this->tsmap[system_id].whiterabbit;
-      this->tsmap[system_id]=*ts;
-
+      if (system_id!=0xa00 && system_id != 0xb00)
+        this->updateWRTS(system_id, ts->whiterabbit);
+      
       uint32_t offset=0; // add to system id for specific triggers
 #if 0
       if (this->lasttrig==1)
@@ -240,6 +240,14 @@ int CalifaParser::parseTimestamp(uint32_t *&p, uint32_t* p_end)
     }
   //no timestamp data
   return 1;
+}
+
+void CalifaParser::updateWRTS(uint32_t system_id, uint64_t wrts)
+{
+  timestamp_t ts;
+  ts.whiterabbit=wrts;
+  ts.whiterabbit_prev=this->tsmap[system_id].whiterabbit;
+  this->tsmap[system_id]=ts;
 }
 
 CalifaParser::module_index_t CalifaParser::parseGosipHeader(uint32_t *&p,
@@ -306,7 +314,6 @@ CalifaParser::module_index_t CalifaParser::parseGosipHeader(uint32_t *&p,
       //      return 1;
       duplicate=1;
     }
-
  
   ei=&(this->eventmap[idx]);
   memset(ei, 0, sizeof(eventinfo_t));
@@ -325,6 +332,24 @@ int CalifaParser::parseCalifaHit(uint32_t *&pl_tmp,
 			     eventinfo_t* ei,
 			     CalifaParser::module_index_t idx)
 {
+  // hack: only add the califa stuff to tsmap now
+
+  if (GET_MOD(idx)<16)
+    {
+      // regular califa range
+      updateWRTS(this->lastSysID, this->last_ts);
+    }
+#define FAKE_MAIN 0
+#if FAKE_MAIN
+  if (idx==IDX(13,16,1))
+    {
+      //      printf("faking main wrts!\n");
+      updateWRTS(0x1000, this->last_ts);
+    }
+#endif
+  
+
+  
   event_t* evnt=(event_t*)malloc(sizeof(event_t));
   uint32_t processed_size;
   switch((*pl_tmp) >> 16)

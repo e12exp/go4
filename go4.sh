@@ -14,7 +14,6 @@ echo building hotstart for $i in $OUT
 
 NC=nc
 which $NC &>/dev/null || NC=nc_
-
 while ! $NC -v $( echo $1 | sed 's/:/ /') -q0 </dev/null  &>/dev/null ;
 do
     echo "waiting for $1 ..."

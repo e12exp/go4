@@ -54,7 +54,7 @@ trace_head_t;
 } //extern "C"
 
 #include <stdio.h>
-#define SIGNED_TRACES 0
+#define SIGNED_TRACES 1
 
 inline double getTracePoint(struct trace_head* h, int n, bool sign=SIGNED_TRACES)
 {

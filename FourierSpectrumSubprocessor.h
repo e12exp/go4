@@ -10,8 +10,8 @@ class FourierSpectrumSubprocessor : public SingleChannelSubprocessor
 		     int nbins,
 		     double upperLimit, 
 		     double lowerLimit=0);
-  virtual void processSubevent(eventinfo_t ei);
   static uint32_t getMSB(uint32_t i);
+  virtual void processSubevent(CalifaParser::module_index_t cidx, eventinfo_t ei) override;
  protected:
   TH1* phase_h;
   virtual void reFFT(double* reX, double* imX, unsigned int N);

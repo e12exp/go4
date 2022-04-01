@@ -16,8 +16,6 @@ OnDemandSubprocessor::OnDemandSubprocessor(): energy_subprocessors(), trace_subp
   printf("Created OnDemandSubprocessor.*********************\n\n\n");
 }
 
-#define IDX(A, B, C) CalifaParser::module_index_t(CalifaParser::subEventIdxType::fbxChannelIdx, A, B, C)
-#define MIDX(A, B)  CalifaParser::module_index_t(CalifaParser::subEventIdxType::fbxModuleIdx, A, B, IDX_WILDCARD)
 
 void OnDemandSubprocessor::processEvent(CalifaParser* p)
 {
@@ -29,9 +27,14 @@ void OnDemandSubprocessor::processEvent(CalifaParser* p)
     {
       auto idx=i->first;
       auto ei=i->second;
+
+      int tracepoints=0;
+      if (ei.trace)
+        tracepoints=ei.tracepoints;
+  
       if (ei.evnt && ! this->energy_subprocessors.count(idx))
 	{
-	  this->addChannel(p, idx, 0, true);
+	  this->addChannel(p, idx, tracepoints, true);
 	}
     }
 }
@@ -39,6 +42,13 @@ void OnDemandSubprocessor::processEvent(CalifaParser* p)
 
 void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_index_t idx, int tracepoints, bool recurse)
 {
+
+  if (this->energy_subprocessors.count(idx)
+      )//&& (tracepoints==0 || this->trace_subprocessors.count(idx)))
+    return; // everything required was already created
+  
+  static int added=0;
+  printf("%s: Adding Channel %d.%d.%d. (No %d)\n", __PRETTY_FUNCTION__, GET_SFP(idx), GET_MOD(idx), GET_CH(idx), added++);
   //if (GET_TYPE(idx)!=CalifaParser::subEventIdxType::fbxChannelIdx)
   //  return; //other indices are not ready yet
 
@@ -68,13 +78,23 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
 
       new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_coinc_sfp_mod, axis_fbx_pc_channel});
       new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_coinc_weird_sfp_mod, axis_fbx_channel});
+     new SingleTraceSubprocessor("trace_any", any, tracepoints, tracepoints);
 
+
+      
       // TIMESTAMP HISTOGRAMS
-
-      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_lim_wrts_diff_main_comp);
-      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_lim_wrts_diff_main_comp_master);
-      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_lim_wrts_diff_main_comp_slave);
-      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_lim_wrts_diff_main_comp_special);
+      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_lim_wrts_diff_main);
+      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_lim_wrts_diff_main_mes_nonspecial);
+      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_lim_wrts_diff_main_wix_nonspecial);
+      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_lim_wrts_diff_main_mes_nonspecial_he);
+      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_lim_wrts_diff_main_wix_nonspecial_he);
+      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_lim_wrts_diff_main_master_he);
+      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_lim_wrts_diff_main_slave_he);
+      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_lim_wrts_diff_main_mes_special);
+      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_lim_wrts_diff_main_wix_special);
+      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_full_wrts_diff_main_mes_special);
+      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_full_wrts_diff_main_mes_nonspecial_he);
+      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_full_wrts_diff_main_wix_nonspecial_he);
       //new HistFillerSubprocessor<TH(2,I), 1>(&any, module_mchannel);
       //new HistFillerSubprocessor<TH(2,I), 1>(&any, module_ts_diff);
       //new HistFillerSubprocessor<TH(2,I), 1>(&any, module_pulser);
@@ -85,13 +105,15 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       new HistFillerSubprocessor<TH(1,I), 1>(evt, axis_full_wrts_diff_mes_wix);*/
       //new HistFillerSubprocessor<TH(1,I), 1>(evt, axis_full_wrts_diff_t3_mes_wix);
       new HistFillerSubprocessor<TH(1,I), 1>(evt, axis_full_wrts_diff_wix_mes);
-      new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_coinc_pc_sfp_mod, axis_lim_wrts_diff_main_comp});
+      new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_coinc_pc_sfp_mod, axis_lim_wrts_diff_main});
       //new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_coinc_pc_sfp_mod, axis_lim_wrts_diff_main_master});
       //new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_coinc_pc_sfp_mod, axis_lim_wrts_diff_main_slave});
       new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_coinc_pc_sfp_mod, axis_full_wrts_diff_main}, 10);
-      new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_lim_wrts_diff_main_comp_master, axis_lim2_energy}, 10);
-      new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_lim_wrts_diff_main_comp_master, axis_full_energy}, 100);
-      new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_coinc_pc_sfp_mod, axis_lim2_energy}, 10);
+      new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_lim_wrts_diff_main_nonspecial, axis_lim2_energy}, 10);
+      new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_lim_wrts_diff_main_mes_nonspecial, axis_lim2_energy}, 10);
+      new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_lim_wrts_diff_main_wix_nonspecial, axis_lim2_energy}, 10);
+       new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_lim_wrts_diff_main_nonspecial, axis_lim2_energy}, 10);
+     new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_coinc_pc_sfp_mod, axis_lim2_energy}, 10);
       new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_coinc_pc_sfp_mod, axis_fbx_overflow_worst});
       new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_coinc_pc_sfp_mod, axis_lim_trace_sample});
       new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_full2_energy, axis_lim2_dr_gamma});
@@ -121,6 +143,9 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       //new HistFillerSubprocessor<TH(1,I), 1>(&idx_006, &axis_hack_psp_sum);
       //new HistFillerSubprocessor<TH(1,I), 1>(&idx_006, &axis_hack_psp_diff);
 
+
+      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_full_delay);
+
       globals_initialized++;
 
       
@@ -136,13 +161,10 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
     tracepoints=evts[idx].tracepoints;
     
 
-  if (this->energy_subprocessors.count(idx)
-      && (tracepoints==0 || this->trace_subprocessors.count(idx)))
-    return; // everything required was already created
 
   
-  if (0 && (GET_TYPE(idx)==CalifaParser::subEventIdxType::petalIdx
-	    || GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxModuleIdx))
+  if ((GET_TYPE(idx)==CalifaParser::subEventIdxType::petalIdx
+       || GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxModuleIdx))
     {
       this->energy_subprocessors[idx]=new HistFillerSubprocessor<TH(1,I), 1>(idx, axis_sum_cal_en);
       
@@ -253,13 +275,13 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
 	  //						       &idx, ha, 30.0, 8000.0);
 	}
       else 
-      */if (1)//;GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxModuleIdx)
+      */if (0)//;GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxModuleIdx)
 	{
 	  new HistFillerSubprocessor<TH(1,I), 1>(idx, axis_lim_cal_en);
 
 	}
       //new HistFillerSubprocessor<TH(2,I), 1>(&idx, qpid_axis, 64);
-      if (correlations.count(idx))
+      if (0 && correlations.count(idx))
 	for (auto m=correlations[idx].begin(); m!=correlations[idx].end(); ++m)
 	  {
 	    new HistFillerSubprocessor<TH(2,I), 2>({idx, *m}, {axis_lim_cal_en, axis_lim_cal_en}, 10);
@@ -270,10 +292,17 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
   if (tracepoints!=0 && ! this->trace_subprocessors.count(idx) && GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxChannelIdx )
     {
       assert(tracepoints>0);
-      printf("tracepoints=%d\n", tracepoints);
+      //printf("tracepoints=%d\n", tracepoints);
       //we have traces, create trace subprocessors
       //
+      // baseline hist processor
+      {
+	//	    BaselineHistSubprocessor* bhp=
+	new BaselineHistSubprocessor("baseline", idx);
+      }
+      
       //single traces
+      if (tracepoints>100)
       {
 	SingleTraceSubprocessor* tp=
 	  new SingleTraceSubprocessor("trace_last", idx, tracepoints,
@@ -281,12 +310,8 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
 	tp->getHist()->GetXaxis()->SetTitle("trace point index");
 	this->trace_subprocessors[idx]=tp;
       }
-      // baseline hist processor
-      {
-	//	    BaselineHistSubprocessor* bhp=
-	new BaselineHistSubprocessor("baseline", idx);
-      }
       //FFT
+      if (0)
       {
 	//	    FourierSpectrumSubprocessor *fftp=
 	new FourierSpectrumSubprocessor("fft_amp", "fft_phase", 
@@ -294,6 +319,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
 					F_ADC/2); // for decimated traces. 
       }
       // trace analysis histograms
+      if (0)
       {
         std::array<HistogramAxis,2> trace_vs_en_axis={axis_full_energy, axis_full_trace_en};
 

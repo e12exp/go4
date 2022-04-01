@@ -6,6 +6,6 @@ class BaselineHistSubprocessor : public SingleChannelSubprocessor
  public:
   BaselineHistSubprocessor(char* name,
 		     module_index_t idx);
-  virtual void processSubevent(eventinfo_t ei);
+  virtual void processSubevent(CalifaParser::module_index_t cidx, eventinfo_t ei) override;
 };
 #endif

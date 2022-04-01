@@ -21,6 +21,9 @@
 #define IDX_INVALID CalifaParser::module_index_t(CalifaParser::subEventIdxType::fbxChannelIdx, 255, 255, 253)
 #define IDX_EVENT CalifaParser::module_index_t(CalifaParser::subEventIdxType::fbxChannelIdx, 255, 255, 252)
 
+#define IDX(A, B, C) CalifaParser::module_index_t(CalifaParser::subEventIdxType::fbxChannelIdx, A, B, C)
+#define MIDX(A, B)  CalifaParser::module_index_t(CalifaParser::subEventIdxType::fbxModuleIdx, A, B, IDX_WILDCARD)
+
 #define GET_TYPE(idx) std::get<0>(idx)
 #define GET_SFP(idx)  std::get<1>(idx)
 #define GET_MOD(idx)  std::get<2>(idx)
@@ -43,7 +46,7 @@
 class CalifaParser
 {
  public:
-  static const bool CHECK_EVT_TYPE=false;
+  static const bool CHECK_EVT_TYPE=true;
   // if true, skip anything not matching:
   static const uint32_t FEBEX_PROC_ID=0xd;
   static const uint32_t FEBEX_EVT_TYPE=0x64;
@@ -58,7 +61,7 @@ class CalifaParser
 
 
 
-  typedef std::tuple<subEventIdxType, uint8_t, uint8_t, uint8_t> module_index_t;
+  typedef std::tuple<uint8_t, uint8_t, uint8_t, uint8_t> module_index_t;
 
   //create a petal index from a channel index
   static module_index_t toIdxType(subEventIdxType st, module_index_t idx)
@@ -166,6 +169,7 @@ class CalifaParser
   //gosip_header_t gossip;
   //gosip_sub_header_t gosip_sub;
   int parseTimestamp(uint32_t *&p, uint32_t* p_end);
+  void updateWRTS(uint32_t system_id, uint64_t wrts);
   module_index_t parseGosipHeader(uint32_t* &p, eventinfo_t*&, uint32_t*&, uint8_t control);
   int parseCalifaHit(uint32_t *&pl_tmp, eventinfo_t* ei, module_index_t idx);
   void reset();

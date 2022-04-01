@@ -18,8 +18,16 @@ void SingleChannelSubprocessor::processEvent(CalifaParser* p)
 {
   auto evmap=p->getCalifaEvents();
   CalifaParser::eventmap_t::iterator evit;
-  if (( evit=evmap->find(this->idx)) != evmap->end())
+  if (this->idx != IDX_ANY)
     {
-      this->processSubevent(evit->second);
+      if (( evit=evmap->find(this->idx)) != evmap->end())
+        {
+          this->processSubevent(this->idx, evit->second);
+        }
+    }
+  else
+    {
+      for (auto&& i: *evmap)
+        this->processSubevent(i.first, i.second);
     }
 }

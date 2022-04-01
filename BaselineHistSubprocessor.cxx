@@ -2,12 +2,12 @@
 
 BaselineHistSubprocessor::BaselineHistSubprocessor(char* name,
 						 module_index_t idx)
-  : SingleChannelSubprocessor(name, idx, (1<<15)-3, (1<<15)-2, 1)
+  : SingleChannelSubprocessor(name, idx, 1<<16, (1<<15)-1, -(1<<15))
 {
 
 }
 
-void BaselineHistSubprocessor::processSubevent(eventinfo_t ei)
+void BaselineHistSubprocessor::processSubevent(CalifaParser::module_index_t cidx, eventinfo_t ei)
 {
   if (ei.trace)
     {

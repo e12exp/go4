@@ -204,19 +204,33 @@ double HistogramAxisHandlers_evnt_overflow_worst(CalifaParser* parser,
 // (without a different C++ compiler)
 
 // TODO: this is ugly. make cut subprocessors work instead!
-#define MAKE_RESTRICTION(name, expr) struct name {  static bool apply(CalifaParser::module_index_t* idx)  { expr; };};
+#define MAKE_RESTRICTION_IMPL(name, expr) struct name {  static bool apply(CalifaParser* parser, CalifaParser::module_index_t* idx)  { expr; };};
+#define MAKE_RESTRICTION(name, expr) MAKE_RESTRICTION_IMPL(name, expr) MAKE_RESTRICTION_IMPL(name##_he, GETEVNT; if (evnt->energy<100) return 0; expr)
 
 MAKE_RESTRICTION(always, return 1)
 MAKE_RESTRICTION(master, return GET_SFP_PURE(*idx)<2  && GET_MOD(*idx)<16)
 MAKE_RESTRICTION(slave, return GET_SFP_PURE(*idx)>=2 && GET_MOD(*idx)<16)
 MAKE_RESTRICTION(special, return GET_MOD(*idx)>=16)
+MAKE_RESTRICTION(nonspecial, return GET_MOD(*idx)<16)
+
+MAKE_RESTRICTION(mes_nonspecial, return GET_SFP(*idx)/10==1 && GET_MOD(*idx)<16)
+MAKE_RESTRICTION(wix_nonspecial, return GET_SFP(*idx)/10==2 && GET_MOD(*idx)<16)
+
+
+//TODO
+//MAKE_RESTRICTION(mes_high_nonspecial, return GET_SFP(*idx)/10==1 && GET_MOD(*idx)<16 )
+//MAKE_RESTRICTION(wix_nonspecial, return GET_SFP(*idx)/10==2 && GET_MOD(*idx)<16)
+
+
+MAKE_RESTRICTION(mes_special, return GET_SFP(*idx)/10==1 && GET_MOD(*idx)>=16)
+MAKE_RESTRICTION(wix_special, return GET_SFP(*idx)/10==2 && GET_MOD(*idx)>=16)
 
 template<int ref_sys, typename valid_t=always >
 double HistogramAxisHandlers_evnt_wrts_diff_ref(CalifaParser* parser,
                                                 CalifaParser::module_index_t* idx)
 {
     GETEVNT;
-    if (!valid_t::apply(idx))
+    if (!valid_t::apply(parser, idx))
       return NAN;
     int64_t own_ts=ei.wrts;
     auto& tsmap=*(parser->getTimestamps());
@@ -225,7 +239,14 @@ double HistogramAxisHandlers_evnt_wrts_diff_ref(CalifaParser* parser,
     int64_t ref_ts=int64_t(tsmap.at(ref_sys).whiterabbit);
     return own_ts-ref_ts;
 }
+
+double HistogramAxisHandlers_evnt_delay(CalifaParser* parser,
+                                 CalifaParser::module_index_t* idx)
+{
+#define LEAPSECONDS 37
   
+  return double(time(NULL)+LEAPSECONDS) - parser->getLastTS()/1e9;
+}
   
 template<int ref_sys, typename valid_t=always >
 double HistogramAxisHandlers_evnt_wrts_diff_ref_comp(CalifaParser* parser,
@@ -233,8 +254,10 @@ double HistogramAxisHandlers_evnt_wrts_diff_ref_comp(CalifaParser* parser,
 {
   // compensate slave exploder offset
   double res=HistogramAxisHandlers_evnt_wrts_diff_ref<ref_sys, valid_t>(parser, idx);
+#if 0 // should be fixed now!
   if (GET_SFP_PURE(*idx)>=2)
-    res+=245; 
+    res+=245;
+#endif
   return res;
 }
 
@@ -485,25 +508,23 @@ WRTSDIFF(main_mes, WRTS_MAIN, WRTS_WIX);
 WRTSDIFF(main_wix, WRTS_MAIN, WRTS_WIX);
 
 ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_main = HistogramAxisHandlers_evnt_wrts_diff_ref<WRTS_MAIN>;)
-ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_main_master = HistogramAxisHandlers_evnt_wrts_diff_ref<WRTS_MAIN, master>;)
-ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_main_slave = HistogramAxisHandlers_evnt_wrts_diff_ref<WRTS_MAIN, slave>;)
-ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_main_special = HistogramAxisHandlers_evnt_wrts_diff_ref<WRTS_MAIN, special>;)
-ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_main_comp = HistogramAxisHandlers_evnt_wrts_diff_ref_comp<WRTS_MAIN>;)
-ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_main_comp_master = HistogramAxisHandlers_evnt_wrts_diff_ref_comp<WRTS_MAIN, master>;)
-ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_main_comp_slave = HistogramAxisHandlers_evnt_wrts_diff_ref_comp<WRTS_MAIN, slave>;)
-ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_main_comp_special = HistogramAxisHandlers_evnt_wrts_diff_ref_comp<WRTS_MAIN, special>;)
 ONBODY(auto HistogramAxisHandlers_evnt_dr_gamma = HistogramAxisHandlers_evnt_dr<+1, 0>;)
+
+#define WRTS_DIFF_MAIN_IMPL(cond) ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_main_##cond=HistogramAxisHandlers_evnt_wrts_diff_ref<WRTS_MAIN, cond>;)  ; DECLARE_HISTAXIS(lim, wrts_diff_main_##cond, 4000, 0, 4000) ; DECLARE_HISTAXIS(full, wrts_diff_main_##cond, 10000, -100000, 100000)
+#define WRTS_DIFF_MAIN(cond) WRTS_DIFF_MAIN_IMPL(cond) ; WRTS_DIFF_MAIN_IMPL(cond##_he) 
+WRTS_DIFF_MAIN(nonspecial)
+WRTS_DIFF_MAIN(mes_nonspecial)
+WRTS_DIFF_MAIN(wix_nonspecial)
+WRTS_DIFF_MAIN(special)
+WRTS_DIFF_MAIN(mes_special)
+WRTS_DIFF_MAIN(wix_special)
+WRTS_DIFF_MAIN(master)
+WRTS_DIFF_MAIN(slave)
 
 DECLARE_HISTAXIS(lim, wrts_diff_main, 4000, 0, 4000);
 DECLARE_HISTAXIS(full, wrts_diff_main, 10000, 0, 100000);
-DECLARE_HISTAXIS(lim, wrts_diff_main_master, 4000, 0, 4000);
-DECLARE_HISTAXIS(lim, wrts_diff_main_slave,  4000, 0, 4000);
-DECLARE_HISTAXIS(lim, wrts_diff_main_special,  4000, 0, 4000);
-DECLARE_HISTAXIS(lim, wrts_diff_main_comp, 4000, 0, 4000);
-DECLARE_HISTAXIS(full, wrts_diff_main_comp, 10000, 0, 100000);
-DECLARE_HISTAXIS(lim, wrts_diff_main_comp_master, 4000, 0, 4000);
-DECLARE_HISTAXIS(lim, wrts_diff_main_comp_slave,  4000, 0, 4000);
-DECLARE_HISTAXIS(lim, wrts_diff_main_comp_special,  4000, 0, 4000);
+//DECLARE_HISTAXIS(lim, wrts_diff_main_master, 4000, 0, 4000);
+//DECLARE_HISTAXIS(lim, wrts_diff_main_slave,  4000, 0, 4000);
 
 //DECLARE_HISTAXIS(full, wrts_diff_califa_ams, 2000, -100000, 100000);
 //DECLARE_HISTAXIS(full, wrts_diff_main_ams, 2000, -100000, 100000);
@@ -578,6 +599,9 @@ DECLARE_HISTAXIS(coinc,multiplicity, 5000, 0, 5000);
 
 DECLARE_HISTAXIS(fbx, sfp0_module_dual, 20, 0, 20);
 DECLARE_HISTAXIS(sum,cal_en, 16000, 0, 16000);
+
+
+DECLARE_HISTAXIS(full, delay, 5000, 0, 5000);
 
 
 // calibrated energy is a special case, as the range is dependent on the channel calibration
