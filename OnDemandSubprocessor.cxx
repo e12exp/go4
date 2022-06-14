@@ -58,7 +58,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
     return;
   //  static HistogramAxis axis080=	  *createCalEnergyAxis(IDX(0, 8, 0));
 
-  //  static HistogramAxis qpid_axis[]={axis_lim_n_f, axis_lim_n_s};
+  static std::array<HistogramAxis, 2> qpid_axis={axis_lim_n_f, axis_lim_n_s};
   //static HistogramAxis module_channel[]={axis_coinc_sfp_mod, axis_fbx_pc_channel};
   //static HistogramAxis module_mchannel[]={axis_fbx_sfp0_module, axis_mesytec_PA_ch};
   //static HistogramAxis module_ts_diff[]={axis_coinc_sfp_mod, axis_coinc_ts_diff};
@@ -78,9 +78,10 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
 
       new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_coinc_sfp_mod, axis_fbx_pc_channel});
       new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_coinc_weird_sfp_mod, axis_fbx_channel});
-     new SingleTraceSubprocessor("trace_any", any, tracepoints, tracepoints);
+      new SingleTraceSubprocessor("trace_any", any, tracepoints, tracepoints);
 
 
+      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_full_self_triggered);
       
       // TIMESTAMP HISTOGRAMS
       new HistFillerSubprocessor<TH(1,I), 1>(any, axis_lim_wrts_diff_main);
@@ -93,8 +94,15 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       new HistFillerSubprocessor<TH(1,I), 1>(any, axis_lim_wrts_diff_main_mes_special);
       new HistFillerSubprocessor<TH(1,I), 1>(any, axis_lim_wrts_diff_main_wix_special);
       new HistFillerSubprocessor<TH(1,I), 1>(any, axis_full_wrts_diff_main_mes_special);
+
+      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_full_wrts_diff_main_wix_special);
+
+      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_lim_wrts_diff_mes_sync);
+
+      new HistFillerSubprocessor<TH(1,I), 1>(any, axis_full_wrts_diff_main_mes_special);
       new HistFillerSubprocessor<TH(1,I), 1>(any, axis_full_wrts_diff_main_mes_nonspecial_he);
       new HistFillerSubprocessor<TH(1,I), 1>(any, axis_full_wrts_diff_main_wix_nonspecial_he);
+      
       //new HistFillerSubprocessor<TH(2,I), 1>(&any, module_mchannel);
       //new HistFillerSubprocessor<TH(2,I), 1>(&any, module_ts_diff);
       //new HistFillerSubprocessor<TH(2,I), 1>(&any, module_pulser);
@@ -112,8 +120,8 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_lim_wrts_diff_main_nonspecial, axis_lim2_energy}, 10);
       new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_lim_wrts_diff_main_mes_nonspecial, axis_lim2_energy}, 10);
       new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_lim_wrts_diff_main_wix_nonspecial, axis_lim2_energy}, 10);
-       new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_lim_wrts_diff_main_nonspecial, axis_lim2_energy}, 10);
-     new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_coinc_pc_sfp_mod, axis_lim2_energy}, 10);
+      new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_lim_wrts_diff_main_nonspecial, axis_lim2_energy}, 10);
+      new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_coinc_pc_sfp_mod, axis_lim2_energy}, 10);
       new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_coinc_pc_sfp_mod, axis_fbx_overflow_worst});
       new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_coinc_pc_sfp_mod, axis_lim_trace_sample});
       new HistFillerSubprocessor<TH(2,I), 1>(any, {axis_full2_energy, axis_lim2_dr_gamma});
@@ -145,6 +153,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
 
 
       new HistFillerSubprocessor<TH(1,I), 1>(any, axis_full_delay);
+      new HistFillerSubprocessor<TH(2,I), 1>(any, qpid_axis, 2);
 
       globals_initialized++;
 
@@ -233,16 +242,17 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
     {
       //      {IDX(0, 0, 0), {IDX(0, 0, 1)}},
       // {IDX(0, 0, 1), {IDX(0, 0, 2)}},
-     {MIDX(0,0), {MIDX(0,1)}},
-      {IDX(0, 6, 0),
+      {IDX(13, 16, 4),
        {
-	 IDX(0, 6, 15),
-	 IDX(0, 7, 0)
-       }},//, 
-      {IDX(0, 7, 0),
+	 IDX(23, 16, 4)
+       }}
+      //, 
+      /*{IDX(0, 7, 0),
        {
 	 IDX(0, 6, 0)
-       }}//, 
+       }}
+      */
+      //, 
       //{IDX(0, 0, 3), {IDX(0, 0, 6)}},
       //{IDX(0, 0, 4), {IDX(0, 0, 5)}},
       //{IDX(0, 0, 5), {IDX(0, 0, 6)}},
@@ -281,10 +291,10 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
 
 	}
       //new HistFillerSubprocessor<TH(2,I), 1>(&idx, qpid_axis, 64);
-      if (0 && correlations.count(idx))
+      if (correlations.count(idx))
 	for (auto m=correlations[idx].begin(); m!=correlations[idx].end(); ++m)
 	  {
-	    new HistFillerSubprocessor<TH(2,I), 2>({idx, *m}, {axis_lim_cal_en, axis_lim_cal_en}, 10);
+	    new HistFillerSubprocessor<TH(2,I), 2>({idx, *m}, {axis_lim_energy, axis_lim_energy}, 10);
 	  }
     }
 
@@ -302,7 +312,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       }
       
       //single traces
-      if (tracepoints>100)
+      if (1 ) //tracepoints>100)
       {
 	SingleTraceSubprocessor* tp=
 	  new SingleTraceSubprocessor("trace_last", idx, tracepoints,

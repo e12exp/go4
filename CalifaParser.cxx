@@ -339,6 +339,10 @@ int CalifaParser::parseCalifaHit(uint32_t *&pl_tmp,
       // regular califa range
       updateWRTS(this->lastSysID, this->last_ts);
     }
+  else
+    {
+      updateWRTS(0xf000+(GET_SFP(idx)<<4)+GET_CH(idx), this->last_ts);
+    }
 #define FAKE_MAIN 0
 #if FAKE_MAIN
   if (idx==IDX(13,16,1))

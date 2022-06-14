@@ -82,7 +82,7 @@ DECLARE_EVNT(n_s);
 DECLARE_EVNT(tot);
 DECLARE_EVNT(num_pileup);
 DECLARE_EVNT(num_discarded);
-
+DECLARE_EVNT(self_triggered);
 
 #if NEED_BODIES //////////////////////////////////////////////////////
 
@@ -500,17 +500,20 @@ double HistogramAxisHandlers_evnt_cal_en(CalifaParser* parser, CalifaParser::mod
 #endif  // NEED_BODIES //////////////////////////////////////////////////////
 
 
-#define WRTSDIFF(name, pos, neg) ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_ ## name =HistogramAxisHandlers_evnt_wrts_diff<pos,neg>;) DECLARE_HISTAXIS(full, wrts_diff_##name, 10000, -100000, 100000); DECLARE_HISTAXIS(lim, wrts_diff_##name, 4000, 0, 4000);
+#define WRTSDIFF(name, pos, neg) ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_ ## name =HistogramAxisHandlers_evnt_wrts_diff<pos,neg>;) DECLARE_HISTAXIS(full, wrts_diff_##name, 10000, -100000, 100000); DECLARE_HISTAXIS(lim, wrts_diff_##name, 8000, 0, 8000);
 
 WRTSDIFF(mes_wix,  WRTS_MES,  WRTS_WIX);
 WRTSDIFF(wix_mes,  WRTS_WIX,  WRTS_MES);
 WRTSDIFF(main_mes, WRTS_MAIN, WRTS_WIX);
 WRTSDIFF(main_wix, WRTS_MAIN, WRTS_WIX);
+WRTSDIFF(mes_sync,  0xf0d0, 0xf0d4);
 
 ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_main = HistogramAxisHandlers_evnt_wrts_diff_ref<WRTS_MAIN>;)
 ONBODY(auto HistogramAxisHandlers_evnt_dr_gamma = HistogramAxisHandlers_evnt_dr<+1, 0>;)
 
-#define WRTS_DIFF_MAIN_IMPL(cond) ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_main_##cond=HistogramAxisHandlers_evnt_wrts_diff_ref<WRTS_MAIN, cond>;)  ; DECLARE_HISTAXIS(lim, wrts_diff_main_##cond, 4000, 0, 4000) ; DECLARE_HISTAXIS(full, wrts_diff_main_##cond, 10000, -100000, 100000)
+#define LIM_WRTS_DIFF_MAX 8000
+
+#define WRTS_DIFF_MAIN_IMPL(cond) ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_main_##cond=HistogramAxisHandlers_evnt_wrts_diff_ref<WRTS_MAIN, cond>;)  ; DECLARE_HISTAXIS(lim, wrts_diff_main_##cond, LIM_WRTS_DIFF_MAX, 0, LIM_WRTS_DIFF_MAX) ; DECLARE_HISTAXIS(full, wrts_diff_main_##cond, 10000, -100000, 100000)
 #define WRTS_DIFF_MAIN(cond) WRTS_DIFF_MAIN_IMPL(cond) ; WRTS_DIFF_MAIN_IMPL(cond##_he) 
 WRTS_DIFF_MAIN(nonspecial)
 WRTS_DIFF_MAIN(mes_nonspecial)
@@ -521,7 +524,7 @@ WRTS_DIFF_MAIN(wix_special)
 WRTS_DIFF_MAIN(master)
 WRTS_DIFF_MAIN(slave)
 
-DECLARE_HISTAXIS(lim, wrts_diff_main, 4000, 0, 4000);
+DECLARE_HISTAXIS(lim, wrts_diff_main, LIM_WRTS_DIFF_MAX,  0, LIM_WRTS_DIFF_MAX);
 DECLARE_HISTAXIS(full, wrts_diff_main, 10000, 0, 100000);
 //DECLARE_HISTAXIS(lim, wrts_diff_main_master, 4000, 0, 4000);
 //DECLARE_HISTAXIS(lim, wrts_diff_main_slave,  4000, 0, 4000);
@@ -574,6 +577,7 @@ DECLARE_HISTAXIS(rebinned512, n_s, 65536/512, -32768, 32768);
 
 DECLARE_HISTAXIS(full, tot, 65536, -32768, 32768);
 DECLARE_HISTAXIS(full, num_pileup, 100, 0, 100);
+DECLARE_HISTAXIS(full, self_triggered, 256, 0, 256);
 DECLARE_HISTAXIS(full, num_discarded, 100, 0, 100);
 
 DECLARE_HISTAXIS(full,trace_sample,  1<<14, 0, 1<<14);

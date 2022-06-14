@@ -11,10 +11,7 @@ SingleTraceSubprocessor::SingleTraceSubprocessor(char* name,
 
 void SingleTraceSubprocessor::processSubevent(CalifaParser::module_index_t cidx, eventinfo_t ei)
 {
-  if (ei.trace
-      //&& ei.evnt->energy>100
-      //&& !(ei.evnt->timestamp & 0xff00)
-      )
+  if (ei.trace )
     {
       this->h->Reset();
       for (unsigned int i=1; i<=ei.tracepoints; i++)
