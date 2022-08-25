@@ -271,6 +271,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
 	//	new ChannelCutHistFillerSubprocessor<TH(1,I), 1>(&idx, &axis_full_energy, 1,
 	//						 &idx, &axis_full_energy);
       new HistFillerSubprocessor<TH(1,I), 1>(idx, axis_lim_energy);
+      new HistFillerSubprocessor<TH(1,I), 1>(idx, axis_full_discr_amp);
       //new HistFillerSubprocessor<TH(1,I), 1>(&idx, &axis_full_energy);
       ldbg("created a new energy processor for %d:%d:%d.\n", 
 	   GET_SFP(idx), GET_MOD(idx), 

@@ -17,7 +17,8 @@ typedef struct eventinfo
   double trace_en;      // what is the difference between the maximum of the trace and the baseline before?
   double trace_en_diff; 
   double trace0, bl_slope; 
-
+  double discr_amp;
+  
   double calEnergy;
   eventinfo& operator+=(event_t* rhs)
   {

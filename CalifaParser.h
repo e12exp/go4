@@ -46,7 +46,7 @@
 class CalifaParser
 {
  public:
-  static const bool CHECK_EVT_TYPE=true;
+  static const bool CHECK_EVT_TYPE=0;
   // if true, skip anything not matching:
   static const uint32_t FEBEX_PROC_ID=0xd;
   static const uint32_t FEBEX_EVT_TYPE=0x64;
@@ -174,6 +174,7 @@ class CalifaParser
   int parseCalifaHit(uint32_t *&pl_tmp, eventinfo_t* ei, module_index_t idx);
   void reset();
   static void traceAnalysis(eventinfo_t*);
+  static void traceTrigAnalysis(eventinfo_t*);
 };
 
 #endif

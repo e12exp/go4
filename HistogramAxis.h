@@ -70,6 +70,7 @@ protected:
 };
 
 DECLARE_EVNTINFO(max_slope);
+DECLARE_EVNTINFO(discr_amp);
 DECLARE_EVNTINFO(trace_start);
 DECLARE_EVNTINFO(trace_en);
 DECLARE_EVNTINFO(trace0);
@@ -551,6 +552,7 @@ DECLARE_HISTAXIS(full, trace_en, 1<<13, 0, (1<<15)-1);
 DECLARE_HISTAXIS(full, trace_en_diff, 8000, -16000, 16000);
 DECLARE_HISTAXIS(full, trace0, 1<<13, 0, 1<<14);
 DECLARE_HISTAXIS(full, bl_slope, 200, -100, 100);
+DECLARE_HISTAXIS(full, discr_amp, 4096, 0, 4096);
 
 
 DECLARE_HISTAXIS(full, trace_start, 1000, 0, 1000);

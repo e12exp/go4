@@ -475,6 +475,7 @@ int CalifaParser::parseCalifaHit(uint32_t *&pl_tmp,
       //lerror("No traces found!\n");
     }
   traceAnalysis(ei);
+  traceTrigAnalysis(ei);
   
   const std::vector<subEventIdxType> virtevent_types={};//petalIdx};
 
@@ -502,6 +503,7 @@ int CalifaParser::parseCalifaHit(uint32_t *&pl_tmp,
 
 void CalifaParser::traceAnalysis(eventinfo_t* ei)
 {
+
   if (!ei->trace)
     {
       ei->trace_start=-1; // which sample of the trace has the highest slope?
@@ -550,4 +552,40 @@ void CalifaParser::traceAnalysis(eventinfo_t* ei)
     ei->trace_en_diff=NAN;
   
 
+}
+
+
+void CalifaParser::traceTrigAnalysis(eventinfo_t* ei)
+{
+  // we are assuming decimated 25MHz traces, so we use half the values
+  // from febex.db
+  const int discr_int=12; // how many samples to integrate?
+  const int discr_gap=25; // gap of trapezoidal filter
+  const int discr_shift_right=3; // gap of trapezoidal filter
+
+  auto h=ei->trace;
+  if (!h)
+    {
+      ei->discr_amp=NAN;
+      return;
+    }
+
+  double m{};
+  double filt{};
+  for (int i=0; i<std::min(ei->tracepoints, 80U); i++)
+    {
+      filt+=getTracePoint(h, i          )-getTracePoint(h, i-discr_int);
+      filt-=getTracePoint(h, i-discr_gap)-getTracePoint(h, i-discr_int-discr_gap);
+      if (0)
+      printf("%d:%f incoming: %f outgoing %f\n",
+             i, filt,
+             getTracePoint(h, i          )-getTracePoint(h, i-discr_int),
+             getTracePoint(h, i-discr_gap)-getTracePoint(h, i-discr_int-discr_gap));
+      if (m<filt)
+        {
+          //printf("new max!\n");
+          m=filt;
+        }
+    }
+  ei->discr_amp=m/pow(2, discr_shift_right);
 }

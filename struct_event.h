@@ -60,7 +60,13 @@ inline double getTracePoint(struct trace_head* h, int n, bool sign=SIGNED_TRACES
 {
   //printf("%d\n", h->type);
   //if (h->type==3 || h->type==4)
-  assert(n>=1);
+  //assert(n>=1);
+  auto max=int(h->size/2-sizeof(trace_head_t)-2);
+  if (n<1)
+    n=1;
+  if (n>=max-1)
+    n=max-1;
+  
   if (sign)
     return h->points.s[n];
   else
