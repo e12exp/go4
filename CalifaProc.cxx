@@ -82,6 +82,7 @@ void CalifaProc::registerObject(TObject* o)
 	  //lerror("%s:%s\n", buf, buf+idx+1);
 	}
       this->go4ep->AddHistogram(h, dir);
+      //std::cout << "adding " << h->GetName() << " to " << dir << "\n";
     }
   else if (auto c=dynamic_cast<TCanvas*>(o))
     this->go4ep->AddCanvas(c);

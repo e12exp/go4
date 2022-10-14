@@ -46,7 +46,7 @@
 class CalifaParser
 {
  public:
-  static const bool CHECK_EVT_TYPE=0;
+  static const bool CHECK_EVT_TYPE=1;
   // if true, skip anything not matching:
   static const uint32_t FEBEX_PROC_ID=0xd;
   static const uint32_t FEBEX_EVT_TYPE=0x64;

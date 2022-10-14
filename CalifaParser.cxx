@@ -244,10 +244,20 @@ int CalifaParser::parseTimestamp(uint32_t *&p, uint32_t* p_end)
 
 void CalifaParser::updateWRTS(uint32_t system_id, uint64_t wrts)
 {
+  uint32_t count=0;
+  
   timestamp_t ts;
   ts.whiterabbit=wrts;
   ts.whiterabbit_prev=this->tsmap[system_id].whiterabbit;
   this->tsmap[system_id]=ts;
+  if (0 && !count++%1000)
+    {
+      printf("timestamp IDs:\n");
+      for (auto& a: this->tsmap)
+        printf("0x%lx ", a.first);
+      printf("\n");
+    }
+  
 }
 
 CalifaParser::module_index_t CalifaParser::parseGosipHeader(uint32_t *&p,
@@ -572,7 +582,7 @@ void CalifaParser::traceTrigAnalysis(eventinfo_t* ei)
 
   double m{};
   double filt{};
-  for (int i=0; i<std::min(ei->tracepoints, 80U); i++)
+  for (unsigned int i=0; i<std::min(ei->tracepoints, 80U); i++)
     {
       filt+=getTracePoint(h, i          )-getTracePoint(h, i-discr_int);
       filt-=getTracePoint(h, i-discr_gap)-getTracePoint(h, i-discr_int-discr_gap);
