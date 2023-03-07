@@ -1,5 +1,9 @@
 #!/bin/bash
-test -f sourceme.sh && source sourceme.sh
+#test -f sourceme.sh && source sourceme.sh
+
+/u/land/fake_cvmfs/sourceme.sh
+
+. go4login
 
 rm -f Go4AutoSave.root # die in a fire
 
@@ -32,4 +36,4 @@ else
     sed s/__STREAM__/$1/g hotstart.template >$OUT
 fi
 
-exec go4 $OUT
+exec  go4 $OUT
