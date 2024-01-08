@@ -12,8 +12,6 @@ template<class T, int nAxis>
 class SingleHistSubprocessor: public virtual CalifaSubprocessor
 {
  public:
-  typedef CalifaParser::module_index_t module_index_t;
-  
   SingleHistSubprocessor(std::string name,
 			 int nbins,
 			 double upperLimit, 

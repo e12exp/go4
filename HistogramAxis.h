@@ -22,9 +22,9 @@
   if (!ei.evnt)                           \
     return NAN;                           \
   auto evnt=ei.evnt;
-#define DECLARE_EVNTINFO(name) double  HistogramAxisHandlers_evnt_##name(CalifaParser* parser, CalifaParser::module_index_t* idx) EVNTINFO_IMPL(name)
+#define DECLARE_EVNTINFO(name) double  HistogramAxisHandlers_evnt_##name(CalifaParser* parser, module_index_t* idx) EVNTINFO_IMPL(name)
 // ^-- read a field from an eventinfo_t
-#define DECLARE_EVNT(name) double  HistogramAxisHandlers_evnt_##name(CalifaParser* parser, CalifaParser::module_index_t* idx) EVNT_IMPL(name)
+#define DECLARE_EVNT(name) double  HistogramAxisHandlers_evnt_##name(CalifaParser* parser, module_index_t* idx) EVNT_IMPL(name)
 // ^-- read a field from a struct_event
 
 #if NEED_BODIES
@@ -50,12 +50,12 @@ struct HistogramAxis
   int nBins;
   double min;
   double max;
-  double (*getValue)(CalifaParser* parser, CalifaParser::module_index_t* idx);
+  double (*getValue)(CalifaParser* parser, module_index_t* idx);
   int is_one;
 protected:
   ONBODY(public:) // hack only accessible within HistogramAxis.cxx
   HistogramAxis(char descr[50], int nBins, double min, double max,
-                double (*getValue)(CalifaParser* parser, CalifaParser::module_index_t* idx), int is_one=0):
+                double (*getValue)(CalifaParser* parser, module_index_t* idx), int is_one=0):
   nBins(nBins), min(min), max(max), getValue(getValue), is_one(is_one)
   {
     strncpy(this->descr, descr, 50);
@@ -89,15 +89,15 @@ DECLARE_EVNT(self_triggered);
 #if NEED_BODIES //////////////////////////////////////////////////////
 
 double HistogramAxisHandlers_evnt_sfp0_module_dual(CalifaParser* parser,
-						     CalifaParser::module_index_t* idx)
+						     module_index_t* idx)
 {
   GETEVNT;
   uint16_t en=evnt->energy;
-  return GET_MOD(*idx)+10*(en>5000 );
+  return idx->mod+10*(en>5000 );
 }
 
 double HistogramAxisHandlers_evnt_trace_sample(CalifaParser* parser,
-                                               CalifaParser::module_index_t* idx)
+                                               module_index_t* idx)
 {
   GETEVNT;
   return (evnt->cfd_samples[0]);
@@ -105,19 +105,19 @@ double HistogramAxisHandlers_evnt_trace_sample(CalifaParser* parser,
 
 template <int offset, int modulus>
 double HistogramAxisHandlers_evnt_dr(CalifaParser* parser,
-                                     CalifaParser::module_index_t* idx)
+                                     module_index_t* idx)
 {
   GETEVNT;
   if (evnt->energy<200) // low energy stuff, might not be real
     return NAN;
-  if (GET_SFP_PURE(*idx)==0
-      ||GET_SFP_PURE(*idx)==3)
+  if (idx->sfp==0
+      ||idx->sfp==3)
     return NAN; // single range barrel section
-  if (GET_MOD(*idx)%2 != modulus)
+  if (idx->mod % 2 != modulus)
     return NAN;
-  uint8_t newmod= GET_MOD(*idx)+offset;
+  uint8_t newmod= idx->mod+offset;
   
-  CalifaParser::module_index_t shifted=std::make_tuple(GET_TYPE(*idx), GET_SFP(*idx), newmod, GET_CH(*idx));
+  module_index_t shifted={idx->type, idx->sfp, newmod, idx->ch};
   if (!parser->getCalifaEvents()->count(shifted)
       || !parser->getCalifaEvents()->at(shifted).evnt)
     return 0.0; // not triggered: energy 0
@@ -127,7 +127,7 @@ double HistogramAxisHandlers_evnt_dr(CalifaParser* parser,
 
 
 double HistogramAxisHandlers_evnt_multiplicity(CalifaParser* parser,
-					       CalifaParser::module_index_t* idx)
+					       module_index_t* idx)
 {
   if (!parser)
     return NAN;
@@ -148,7 +148,7 @@ uint8_t bitcount(T x)
 }
 
 double HistogramAxisHandlers_evnt_overflow_cnt(CalifaParser* parser,
-					       CalifaParser::module_index_t* idx)
+					       module_index_t* idx)
 {
   GETEVNT;
   
@@ -156,7 +156,7 @@ double HistogramAxisHandlers_evnt_overflow_cnt(CalifaParser* parser,
 }
 
 double HistogramAxisHandlers_evnt_overflow_worst(CalifaParser* parser,
-                                                CalifaParser::module_index_t* idx)
+                                                module_index_t* idx)
 {
   // per f_user, max's firmware uses the following overflow bits:
   /*
@@ -206,30 +206,30 @@ double HistogramAxisHandlers_evnt_overflow_worst(CalifaParser* parser,
 // (without a different C++ compiler)
 
 // TODO: this is ugly. make cut subprocessors work instead!
-#define MAKE_RESTRICTION_IMPL(name, expr) struct name {  static bool apply(CalifaParser* parser, CalifaParser::module_index_t* idx)  { expr; };};
+#define MAKE_RESTRICTION_IMPL(name, expr) struct name {  static bool apply(CalifaParser* parser, module_index_t* idx)  { expr; };};
 #define MAKE_RESTRICTION(name, expr) MAKE_RESTRICTION_IMPL(name, expr) MAKE_RESTRICTION_IMPL(name##_he, GETEVNT; if (evnt->energy<100) return 0; expr)
 
-MAKE_RESTRICTION(always, return 1)
-MAKE_RESTRICTION(master, return GET_SFP_PURE(*idx)<2  && GET_MOD(*idx)<16)
-MAKE_RESTRICTION(slave, return GET_SFP_PURE(*idx)>=2 && GET_MOD(*idx)<16)
-MAKE_RESTRICTION(special, return GET_MOD(*idx)>=16)
-MAKE_RESTRICTION(nonspecial, return GET_MOD(*idx)<16)
+MAKE_RESTRICTION(always,     return 1)
+MAKE_RESTRICTION(master,     return idx->sfp<2  && idx->mod<16)
+MAKE_RESTRICTION(slave,      return idx->sfp>=2 && idx->mod<16)
+MAKE_RESTRICTION(special,    return idx->mod>=16)
+MAKE_RESTRICTION(nonspecial, return idx->mod<16)
 
-MAKE_RESTRICTION(mes_nonspecial, return GET_SFP(*idx)/10==1 && GET_MOD(*idx)<16)
-MAKE_RESTRICTION(wix_nonspecial, return GET_SFP(*idx)/10==2 && GET_MOD(*idx)<16)
+MAKE_RESTRICTION(mes0_nonspecial, return idx->pc_id==0 && idx->mod<16)
+MAKE_RESTRICTION(wix0_nonspecial, return idx->pc_id==1 && idx->mod<16)
 
 
 //TODO
 //MAKE_RESTRICTION(mes_high_nonspecial, return GET_SFP(*idx)/10==1 && GET_MOD(*idx)<16 )
 //MAKE_RESTRICTION(wix_nonspecial, return GET_SFP(*idx)/10==2 && GET_MOD(*idx)<16)
 
+MAKE_RESTRICTION(mes0_special, return idx->pc_id==0 && idx->mod>=16)
+MAKE_RESTRICTION(wix0_special, return idx->pc_id==1 && idx->mod>=16)
 
-MAKE_RESTRICTION(mes_special, return GET_SFP(*idx)/10==1 && GET_MOD(*idx)>=16)
-MAKE_RESTRICTION(wix_special, return GET_SFP(*idx)/10==2 && GET_MOD(*idx)>=16)
 
 template<int ref_sys, typename valid_t=always >
 double HistogramAxisHandlers_evnt_wrts_diff_ref(CalifaParser* parser,
-                                                CalifaParser::module_index_t* idx)
+                                                module_index_t* idx)
 {
     GETEVNT;
     if (!valid_t::apply(parser, idx))
@@ -243,7 +243,7 @@ double HistogramAxisHandlers_evnt_wrts_diff_ref(CalifaParser* parser,
 }
 
 double HistogramAxisHandlers_evnt_delay(CalifaParser* parser,
-                                 CalifaParser::module_index_t* idx)
+                                 module_index_t* idx)
 {
 #define LEAPSECONDS 37
   
@@ -252,20 +252,16 @@ double HistogramAxisHandlers_evnt_delay(CalifaParser* parser,
   
 template<int ref_sys, typename valid_t=always >
 double HistogramAxisHandlers_evnt_wrts_diff_ref_comp(CalifaParser* parser,
-                                                     CalifaParser::module_index_t* idx)
+                                                     module_index_t* idx)
 {
   // compensate slave exploder offset
   double res=HistogramAxisHandlers_evnt_wrts_diff_ref<ref_sys, valid_t>(parser, idx);
-#if 0 // should be fixed now!
-  if (GET_SFP_PURE(*idx)>=2)
-    res+=245;
-#endif
   return res;
 }
 
 template<int sys1, int sys2>
 double HistogramAxisHandlers_evnt_wrts_diff(CalifaParser* parser,
-					    CalifaParser::module_index_t* idx)
+					    module_index_t* idx)
 {
   static int64_t last1=0;
   static int64_t last2=0;
@@ -293,7 +289,7 @@ double HistogramAxisHandlers_evnt_wrts_diff(CalifaParser* parser,
 }
 
 template<int sys1>
-double HistogramAxisHandlers_evnt_wrts_ms(CalifaParser* parser, CalifaParser::module_index_t* idx)
+double HistogramAxisHandlers_evnt_wrts_ms(CalifaParser* parser, module_index_t* idx)
 {
   static int64_t last1=0;
   auto& tsmap=*(parser->getTimestamps());
@@ -313,7 +309,7 @@ WRTSMS(wix, 0xb00)
 WRTSMS(main, 0x1000)
 
 template<int sys1>
-double HistogramAxisHandlers_evnt_wrts_skip(CalifaParser* parser, CalifaParser::module_index_t* idx)
+double HistogramAxisHandlers_evnt_wrts_skip(CalifaParser* parser, module_index_t* idx)
 {
   static int64_t last1=0;
   auto& tsmap=*(parser->getTimestamps());
@@ -335,16 +331,16 @@ WRTSSKIP(main, 0x1000)
 
 
 template <int sfpNo>
-double HistogramAxisHandlers_evnt_sfp_module(CalifaParser* parser, CalifaParser::module_index_t* idx)
+double HistogramAxisHandlers_evnt_sfp_module(CalifaParser* parser, module_index_t* idx)
 {
   GETEVNT;
-  if (GET_SFP(*idx)!=sfpNo)
+  if (idx->sfp!=sfpNo)
     return NAN;
-  return GET_MOD(*idx);
+  return idx->mod;
 }
 ;
 
-double  HistogramAxisHandlers_evnt_xenergy(CalifaParser* parser, CalifaParser::module_index_t* idx) //energy: missing -> NAN. xenergy: missing -> 0
+double  HistogramAxisHandlers_evnt_xenergy(CalifaParser* parser, module_index_t* idx) //energy: missing -> NAN. xenergy: missing -> 0
 {
   GETPARSER
     if (!idx || !parser->getCalifaEvents()->count(*idx))
@@ -356,7 +352,7 @@ double  HistogramAxisHandlers_evnt_xenergy(CalifaParser* parser, CalifaParser::m
 }
 
 
-double  HistogramAxisHandlers_evnt_yenergy(CalifaParser* parser, CalifaParser::module_index_t* idx) //energy: overflow -> NAN
+double  HistogramAxisHandlers_evnt_yenergy(CalifaParser* parser, module_index_t* idx) //energy: overflow -> NAN
 {
   GETPARSER
     if (!idx || !parser->getCalifaEvents()->count(*idx))
@@ -370,7 +366,7 @@ double  HistogramAxisHandlers_evnt_yenergy(CalifaParser* parser, CalifaParser::m
 }
 
 
-#define SFP_MODULE_ALIAS(n) double (*HistogramAxisHandlers_evnt_sfp ## n ##  _module)(CalifaParser*, CalifaParser::module_index_t*) =\
+#define SFP_MODULE_ALIAS(n) double (*HistogramAxisHandlers_evnt_sfp ## n ##  _module)(CalifaParser*, module_index_t*) =\
     HistogramAxisHandlers_evnt_sfp_module<n>
 
 SFP_MODULE_ALIAS(0);
@@ -378,45 +374,48 @@ SFP_MODULE_ALIAS(1);
 SFP_MODULE_ALIAS(2);
 SFP_MODULE_ALIAS(3);
 
-double HistogramAxisHandlers_evnt_channel(CalifaParser* parser, CalifaParser::module_index_t* idx)
+double HistogramAxisHandlers_evnt_channel(CalifaParser* parser, module_index_t* idx)
 {
   GETEVNT;
-  return GET_CH(*idx);
+  return idx->ch;
 }
 
-double HistogramAxisHandlers_evnt_pc_channel(CalifaParser* parser, CalifaParser::module_index_t* idx)
+double HistogramAxisHandlers_evnt_side_channel(CalifaParser* parser, module_index_t* idx)
 {
   GETEVNT;
   //printf("%d.x.%d -> %d\n", GET_SFP(*idx), GET_CH(*idx),  (GET_SFP(*idx)/10-1)*20 + GET_CH(*idx));
-  return (GET_SFP(*idx)/10-1)*20 + GET_CH(*idx);
+  return (idx->pc_id%2)*20 + idx->ch;
 }
 
-/*double HistogramAxisHandlers_evnt_one(CalifaParser* parser, CalifaParser::module_index_t* idx)
+/*double HistogramAxisHandlers_evnt_one(CalifaParser* parser, module_index_t* idx)
 {
   return 1;
   }*/
 
 
 
-
-double HistogramAxisHandlers_evnt_PA_ch(CalifaParser* parser, CalifaParser::module_index_t* idx)
+#if 0
+double HistogramAxisHandlers_evnt_PA_ch(CalifaParser* parser, module_index_t* idx)
 {
   GETEVNT;
-  return febex2preamp(GET_CH(*idx));
+  return febex2preamp(idx->ch);
 }
+
 
 #define GET_TF1(idx, err_ret) const TF1* f=EnergyCal::getCal(idx); if (!f) return err_ret;
 
-/*double  HistogramAxisHandlers_evnt_cal_en(CalifaParser* parser, CalifaParser::module_index_t* idx)
+#endif
+
+/*double  HistogramAxisHandlers_evnt_cal_en(CalifaParser* parser, module_index_t* idx)
 {
   GETEVNT;
   GET_TF1(*idx, NAN);
   return f->Eval(evnt->energy+((double)rand())/RAND_MAX-0.5);
   }*/
-
-double HistogramAxisHandlers_evnt_pulser(CalifaParser* parser, CalifaParser::module_index_t* idx)
+#if 0
+double HistogramAxisHandlers_evnt_pulser(CalifaParser* parser, module_index_t* idx)
 {
-  static const CalifaParser::module_index_t idx0=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx, 0, 8, 4);
+  static const module_index_t idx0=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx, 0, 8, 4);
   if (!parser->getCalifaEvents()->count(idx0))
     return NAN;
   // no pulser
@@ -440,31 +439,40 @@ double HistogramAxisHandlers_evnt_pulser(CalifaParser* parser, CalifaParser::mod
   return 1+(5000<en) ;
 }
 
-double HistogramAxisHandlers_evnt_sfp_mod(CalifaParser* parser, CalifaParser::module_index_t* idx)
+#endif
+
+double HistogramAxisHandlers_evnt_sfp_mod(CalifaParser* parser, module_index_t* idx)
 {
   if (!idx)
     return NAN;
-  return (GET_SFP(*idx)%10)*20+GET_MOD(*idx);
+  return idx->sfp*20+idx->mod;
 }
 
-double HistogramAxisHandlers_evnt_weird_sfp_mod(CalifaParser* parser, CalifaParser::module_index_t* idx)
+double HistogramAxisHandlers_evnt_weird_sfp_mod(CalifaParser* parser, module_index_t* idx)
 {
-  if (!idx || GET_SFP(*idx)/10!=7)
+  if (!idx || (idx->pc_id!=7))
     return NAN;
-  
-  return (GET_SFP(*idx)%10)*20+GET_MOD(*idx);
+  return idx->sfp*20+idx->mod;
 }
 
-double HistogramAxisHandlers_evnt_pc_sfp_mod(CalifaParser* parser, CalifaParser::module_index_t* idx)
+double HistogramAxisHandlers_evnt_pc_sfp_mod(CalifaParser* parser, module_index_t* idx)
 {
   if (!idx)
     return NAN;
-  return (GET_SFP(*idx)>=20)*80+(GET_SFP(*idx)%10)*20+GET_MOD(*idx);
+  return (idx->pc_id>>1)*80+idx->sfp*20+idx->mod;
+}
+double HistogramAxisHandlers_evnt_pc_sfp_mod_t(CalifaParser* parser, module_index_t* idx)
+{
+  // truncated
+  if (!idx)
+    return NAN;
+  return std::min(99., HistogramAxisHandlers_evnt_pc_sfp_mod(parser, idx));
 }
 
-double HistogramAxisHandlers_evnt_ts_diff(CalifaParser* parser, CalifaParser::module_index_t* idx)
+#if 0
+double HistogramAxisHandlers_evnt_ts_diff(CalifaParser* parser, module_index_t* idx)
 {
-  static const CalifaParser::module_index_t idx0=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx, 0, 0, 0);
+  static const module_index_t idx0=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx, 0, 0, 0);
   if (!idx || !parser->getCalifaEvents()->count(*idx)   || !parser->getCalifaEvents()->count(idx0))
     return NAN;
   static uint64_t ts0;
@@ -489,8 +497,10 @@ double HistogramAxisHandlers_evnt_ts_diff(CalifaParser* parser, CalifaParser::mo
   return (int64_t)ts1-(int64_t)ts0;
 }
 
+#endif
 
-double HistogramAxisHandlers_evnt_cal_en(CalifaParser* parser, CalifaParser::module_index_t* idx)
+
+double HistogramAxisHandlers_evnt_cal_en(CalifaParser* parser, module_index_t* idx)
 {
 
   //assert(GET_CH(*idx)==IDX_CHANNEL_WILDCARD);
@@ -518,11 +528,11 @@ ONBODY(auto HistogramAxisHandlers_evnt_dr_gamma = HistogramAxisHandlers_evnt_dr<
 #define WRTS_DIFF_MAIN_IMPL(cond) ONBODY(auto HistogramAxisHandlers_evnt_wrts_diff_main_##cond=HistogramAxisHandlers_evnt_wrts_diff_ref<WRTS_MAIN, cond>;)  ; DECLARE_HISTAXIS(lim, wrts_diff_main_##cond, LIM_WRTS_DIFF_MAX, 0, LIM_WRTS_DIFF_MAX) ; DECLARE_HISTAXIS(full, wrts_diff_main_##cond, 10000, -100000, 100000)
 #define WRTS_DIFF_MAIN(cond) WRTS_DIFF_MAIN_IMPL(cond) ; WRTS_DIFF_MAIN_IMPL(cond##_he) 
 WRTS_DIFF_MAIN(nonspecial)
-WRTS_DIFF_MAIN(mes_nonspecial)
-WRTS_DIFF_MAIN(wix_nonspecial)
+WRTS_DIFF_MAIN(mes0_nonspecial)
+WRTS_DIFF_MAIN(wix0_nonspecial)
 WRTS_DIFF_MAIN(special)
-WRTS_DIFF_MAIN(mes_special)
-WRTS_DIFF_MAIN(wix_special)
+WRTS_DIFF_MAIN(mes0_special)
+WRTS_DIFF_MAIN(wix0_special)
 WRTS_DIFF_MAIN(master)
 WRTS_DIFF_MAIN(slave)
 
@@ -591,14 +601,15 @@ DECLARE_HISTAXIS(fbx,sfp1_module, 19, 0, 19);
 DECLARE_HISTAXIS(fbx,sfp2_module, 19, 0, 19);
 DECLARE_HISTAXIS(fbx,sfp3_module, 19, 0, 19);
 DECLARE_HISTAXIS(fbx,channel,     16, 0, 16);
-DECLARE_HISTAXIS(fbx,pc_channel,   36, 0, 36);
+DECLARE_HISTAXIS(fbx,side_channel, 36, 0, 36);
 DECLARE_HISTAXIS(fbx,overflow_worst, 8, 0, 8);
-DECLARE_HISTAXIS(mesytec,PA_ch,   16, 1, 17);
-DECLARE_HISTAXIS(coinc,pulser, 3, 0, 3);
-DECLARE_HISTAXIS(coinc,ts_diff, 420*2, -420, 420);
-DECLARE_HISTAXIS(coinc,sfp_mod, 80, 0, 80);
-DECLARE_HISTAXIS(coinc,pc_sfp_mod, 160, 0, 160);
-DECLARE_HISTAXIS(coinc,weird_sfp_mod, 80, 0, 80);
+//DECLARE_HISTAXIS(mesytec,PA_ch,   16, 1, 17);
+//DECLARE_HISTAXIS(coinc,pulser, 3, 0, 3);
+//DECLARE_HISTAXIS(coinc,ts_diff, 420*2, -420, 420);
+DECLARE_HISTAXIS(fbx,sfp_mod, 80, 0, 80);
+DECLARE_HISTAXIS(fbx,pc_sfp_mod, 160, 0, 160);
+DECLARE_HISTAXIS(fbx,pc_sfp_mod_t, 100, 0, 100);
+DECLARE_HISTAXIS(fbx,weird_sfp_mod, 80, 0, 80);
 
 DECLARE_HISTAXIS(coinc,multiplicity, 5000, 0, 5000);
 
@@ -610,13 +621,14 @@ DECLARE_HISTAXIS(sum,cal_en, 16000, 0, 16000);
 
 DECLARE_HISTAXIS(full, delay, 5000, 0, 5000);
 
+#if 0
 
 // calibrated energy is a special case, as the range is dependent on the channel calibration
-HistogramAxis* createCalEnergyAxis(CalifaParser::module_index_t idx)
+HistogramAxis* createCalEnergyAxis(module_index_t idx)
 #if NEED_BODIES
 {
   GET_TF1(idx, NULL);
-  static const CalifaParser::module_index_t idx0=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx, 0, 8, 0);
+  static const module_index_t idx0=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx, 0, 8, 0);
   HistogramAxis* h=(HistogramAxis*) malloc(sizeof(HistogramAxis));
   double slope=f->Eval(1) - f->Eval(0);
   double offset=f->Eval(0);
@@ -635,8 +647,10 @@ HistogramAxis* createCalEnergyAxis(CalifaParser::module_index_t idx)
 }
 #endif
 ;
+#endif
+
 
 // alternately, a version with a fixed 
-DECLARE_HISTAXIS(lim,cal_en, 4000, 0, 2.0);
+//DECLARE_HISTAXIS(lim,cal_en, 4000, 0, 2.0);
 
 #endif

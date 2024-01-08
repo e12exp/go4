@@ -32,13 +32,13 @@ class CalifaSubprocessor
   //
   // if you require multiple channels, just specify one and ignore
   // events without the required coincidences.
-  virtual CalifaParser::module_index_t getSensitivity()
+  virtual module_index_t getSensitivity()
   {
     return IDX_NONE; 
   }
   //virtual const char* getPath()=0;
   //empty means any
-  //virtual std::list<CalifaParser::module_index_t> getSensitivityList();
+  //virtual std::list<module_index_t> getSensitivityList();
 
  protected:
   //alternativly, call this to register a processor

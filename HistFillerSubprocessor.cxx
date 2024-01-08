@@ -61,7 +61,7 @@ struct AnyHelper<T, 2>
     for (const auto& i: *evts)
       for (const auto& j: *evts)
         {
-          CalifaParser::module_index_t idx[2]={i.first, j.first};
+          module_index_t idx[2]={i.first, j.first};
           if (i.first!=j.first)
             t->processEventIdx(p, idx);
         }
@@ -115,58 +115,52 @@ void HistFillerSubprocessor<HistType, nAxis, nIdx, hasWeight>::processEventIdx(C
   
 }
 
-static void appendIdxName(char* buf, size_t totlen, const char* prefix, CalifaParser::module_index_t idx, const char* postfix)
+static void appendIdxName(char* buf, size_t totlen, const char* prefix, module_index_t idx, const char* postfix)
 {
   auto start=strlen(buf);
   auto b=buf+start;
   auto len=totlen-start;
   if (idx==IDX_ANY || idx==IDX_EVENT)
     snprintf(b, len, "%s%s", prefix, postfix);
-  else if (GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxChannelIdx)
-    snprintf(b, len, "%s_%01d_%02d_%02d%s", 
+  else if (idx.type==fbxChannelIdx)
+    snprintf(b, len, "%s_%s_%01d_%02d_%02d%s", 
 	     prefix,
-	     GET_SFP(idx), GET_MOD(idx),
-	     GET_CH(idx),
+	     idx.getPCName(), idx.sfp, idx.mod, idx.ch,
 	     postfix);
-  else if (GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxModuleIdx)
-    snprintf(b, len, "%s_%01d_%02d_*%s", 
+  else if (idx.type==fbxModuleIdx)
+    snprintf(b, len, "%s_%s_%01d_%02d_*%s", 
 	     prefix,
-	     GET_SFP(idx), GET_MOD(idx),
+	     idx.getPCName(), idx.sfp, idx.mod,
 	     postfix);
-  else if (GET_TYPE(idx)==CalifaParser::subEventIdxType::petalIdx)
-    snprintf(b, len, "%s_petal_%01d%s", 
-	     prefix,
-	     GET_PETAL(idx),
-	     postfix);
+  else if (idx.type==fbxUniqueIdx)
+    snprintf(b, len, "%s", prefix);
+  else
+    assert(0 && "unsupported index type");
   return;
 }
 
-static void appendIdxPath(char* buf, size_t totlen, const char* prefix, CalifaParser::module_index_t idx)
+static void appendIdxPath(char* buf, size_t totlen, const char* prefix, module_index_t idx)
 {
   auto start=strlen(buf);
   auto b=buf+start;
   auto len=totlen-start;
   if (idx==IDX_ANY || idx==IDX_EVENT)
     ; // nothing
-  else if (GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxChannelIdx)
-      snprintf(b, len, "%s/sfp_%01d/febex_%02d/", 
+  else if (idx.type==fbxChannelIdx)
+      snprintf(b, len, "%s/%s_sfp_%01d/febex_%02d/", 
 	       prefix,
-	       GET_SFP(idx), GET_MOD(idx));
-  else if (GET_TYPE(idx)==CalifaParser::subEventIdxType::fbxModuleIdx)
-    snprintf(b, len, "%s/sfp_%01d/", 
+               idx.getPCName(), idx.sfp, idx.mod);
+  else if (idx.type==fbxModuleIdx)
+    snprintf(b, len, "%s/%s_sfp_%01d/", 
 	     prefix,
-	     GET_SFP(idx)
-	     );
-  else if (GET_TYPE(idx)==CalifaParser::subEventIdxType::petalIdx)
-    snprintf(b, len, "%s/petals/", 
-	     prefix//, GET_PETAL(idx)
+             idx.getPCName(), idx.sfp	     
 	     );
   return;
 }
 
 
 template<class HistType, int nAxis, int nIdx, bool hasWeight>
-const char*  HistFillerSubprocessor<HistType, nAxis, nIdx, hasWeight>::makeHistName(std::array<CalifaParser::module_index_t, nIdx> idx,
+const char*  HistFillerSubprocessor<HistType, nAxis, nIdx, hasWeight>::makeHistName(std::array<module_index_t, nIdx> idx,
                                                                                     std::array<HistogramAxis, nAxis> h)
 {
   //    char* buf=(char*)malloc(200);
@@ -202,21 +196,22 @@ const char*  HistFillerSubprocessor<HistType, nAxis, nIdx, hasWeight>::makeHistN
 }
 
 // also old?
-void writeHistPath(char* out, int n, char* base, CalifaParser::module_index_t& idx)
+void writeHistPath(char* out, int n, char* base, module_index_t& idx)
 {
-  snprintf(out, n, "%s/sfp_%01d/febex_%02d/", base, GET_SFP(idx), GET_MOD(idx));
+  snprintf(out, n, "%s/%s_sfp_%01d/febex_%02d/", base, idx.getPCName(), idx.sfp, idx.mod);
 }
 
 //old
-const char* makeHistName(char* base, CalifaParser::module_index_t  *idx)
+const char* makeHistName(char* base, module_index_t  *idx)
 {
   char* buf=(char*)malloc(200);
-  snprintf(buf, 200, "%s/sfp_%01d/febex_%02d/%s_%01d_%02d_%02d", 
+  snprintf(buf, 200, "%s/%s_sfp_%01d/febex_%02d/%s_%s_%01d_%02d_%02d", 
 	   base,
-	   GET_SFP(idx[0]), GET_MOD(idx[0]),
+           idx[0].getPCName(), idx[0].sfp, idx[0].mod,
 	   base,
-	   GET_SFP(idx[0]), GET_MOD(idx[0]),
-	   GET_CH(idx[0]));
+           idx[0].getPCName(), idx[0].sfp, idx[0].mod,
+           idx[0].ch
+           );
   return buf;
 }
 

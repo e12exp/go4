@@ -30,7 +30,7 @@ uint32_t FourierSpectrumSubprocessor::getMSB(uint32_t i)
 }
 
 
-void FourierSpectrumSubprocessor::processSubevent(CalifaParser::module_index_t cidx, eventinfo_t ei)
+void FourierSpectrumSubprocessor::processSubevent(module_index_t cidx, eventinfo_t ei)
 {
   if (ei.trace)
     {

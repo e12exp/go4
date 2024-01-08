@@ -6,7 +6,7 @@
 class SingleChannelSubprocessor: public SingleHistSubprocessor<TH1D, 1>
 {
  public:
-  //  typedef CalifaParser::module_index_t module_index_t;
+  //  typedef module_index_t module_index_t;
   //old constructor: overload processSubevent
   SingleChannelSubprocessor(char* name,
 			    module_index_t idx,
@@ -16,10 +16,10 @@ class SingleChannelSubprocessor: public SingleHistSubprocessor<TH1D, 1>
 
 
   virtual void processEvent(CalifaParser* p);
-  virtual void processSubevent(CalifaParser::module_index_t cidx, eventinfo_t ei) = 0;
+  virtual void processSubevent(module_index_t cidx, eventinfo_t ei) = 0;
  protected:
 
-  virtual CalifaParser::module_index_t getSensitivity()
+  virtual module_index_t getSensitivity()
   {
     return idx; 
   }

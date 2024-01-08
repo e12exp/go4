@@ -6,8 +6,8 @@
 class EnergyCal
 {
  public:
-  typedef std::map<CalifaParser::module_index_t, const TF1*> calmap_t;
+  typedef std::map<module_index_t, const TF1*> calmap_t;
   static calmap_t *cal;
-  static const TF1* getCal(CalifaParser::module_index_t);
+  static const TF1* getCal(module_index_t);
 };
 #endif

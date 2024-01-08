@@ -18,14 +18,14 @@ class OnDemandSubprocessor : public CalifaSubprocessor
   static OnDemandSubprocessor* inst;
   OnDemandSubprocessor();
 
-  void addChannel(CalifaParser* p, CalifaParser::module_index_t idx, int tracepoints, bool recurse=false);
+  void addChannel(CalifaParser* p, module_index_t idx, int tracepoints, bool recurse=false);
 
-  typedef std::map<CalifaParser::module_index_t, CalifaSubprocessor*> subprocmap;
+  typedef std::map<module_index_t, CalifaSubprocessor*> subprocmap;
   subprocmap energy_subprocessors;
   subprocmap trace_subprocessors;
 
 
-  virtual CalifaParser::module_index_t getSensitivity()
+  virtual module_index_t getSensitivity()
   {
     return IDX_ANY; 
   }

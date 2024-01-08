@@ -104,6 +104,7 @@ void CalifaProc::registerNewHistograms()
 	this->registerObject(it);
 
       auto sens=sp->getSensitivity();
+      
       this->subprocessors[sens].push_back(sp);
       if (sens==IDX_NONE && !l.empty())
 	{
@@ -112,6 +113,7 @@ void CalifaProc::registerNewHistograms()
 	    lerror( "The subprocessor which added TNamed %s did not set a channel sensitivity,"
 		    " this histogram will never get filled. ", n->GetName() );
 	}
+      ldbg("adding a subprocessor to be run for %x, %x\n", uint32_t(sens), uint32_t(IDX_ANY));
     }
 }
 
@@ -163,6 +165,8 @@ Bool_t CalifaProc::BuildEvent(TGo4EventElement * target)
   if (this->subprocessors.count(IDX_ANY))
       for (auto sp : this->subprocessors[IDX_ANY])
 	(sp)->applyCut(this->parser);
+  ldbg("**** CalifaProc, ran with %d subprocessors\n", this->subprocessors[IDX_ANY].size());
+
 
   if (this->subprocessors.count(IDX_EVENT))
     for (auto sp : this->subprocessors[IDX_EVENT])

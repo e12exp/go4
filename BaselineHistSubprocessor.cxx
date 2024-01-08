@@ -9,7 +9,7 @@ BaselineHistSubprocessor::BaselineHistSubprocessor(char* name,
 
 }
 
-void BaselineHistSubprocessor::processSubevent(CalifaParser::module_index_t cidx, eventinfo_t ei)
+void BaselineHistSubprocessor::processSubevent(module_index_t cidx, eventinfo_t ei)
 {
   if (ei.trace)
     {

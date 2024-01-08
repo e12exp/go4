@@ -53,7 +53,6 @@ class CalifaProc
   }
   void registerObject(TObject* o);
  protected:
-  typedef CalifaParser::module_index_t module_index_t;
   void registerNewHistograms();
   void setGo4EP(TGo4EventProcessor* go4ep);
   std::map<module_index_t, std::list<CalifaSubprocessor*> > subprocessors;

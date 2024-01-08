@@ -9,5 +9,5 @@ class SimpleSubprocessor : public CalifaSubprocessor
     return "foo";
   }
   TH1I* hist;
-  CalifaParser::module_index_t idx;
+  module_index_t idx;
 };

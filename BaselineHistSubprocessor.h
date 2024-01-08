@@ -8,6 +8,6 @@ protected:
  public:
   BaselineHistSubprocessor(char* name,
                            module_index_t idx, double downscale=1.0);
-  virtual void processSubevent(CalifaParser::module_index_t cidx, eventinfo_t ei) override;
+  virtual void processSubevent(module_index_t cidx, eventinfo_t ei) override;
 };
 #endif

@@ -9,7 +9,7 @@ SingleTraceSubprocessor::SingleTraceSubprocessor(char* name,
 {
 }
 
-void SingleTraceSubprocessor::processSubevent(CalifaParser::module_index_t cidx, eventinfo_t ei)
+void SingleTraceSubprocessor::processSubevent(module_index_t cidx, eventinfo_t ei)
 {
   if (ei.trace )
     {
@@ -20,8 +20,8 @@ void SingleTraceSubprocessor::processSubevent(CalifaParser::module_index_t cidx,
 	}
       this->h->GetXaxis()->SetRangeUser(0, ei.tracepoints);
       char buf[100];
-      snprintf(buf, 100, "trace %d.%d.%d en=%d, q_f=%d, q_s=%d, type %d @0x%lx, pileup=%d, discr_amp=%f",
-               GET_SFP(cidx), GET_MOD(cidx), GET_CH(cidx),
+      snprintf(buf, 100, "trace %s.%d.%d.%d en=%d, q_f=%d, q_s=%d, type %d @0x%lx, pileup=%d, discr_amp=%f",
+               cidx.getPCName(), cidx.sfp, cidx.mod, cidx.ch,
                ei.evnt->energy, ei.evnt->n_f, ei.evnt->n_s, ei.trace->type, ei.evnt->timestamp, ei.evnt->num_pileup, ei.discr_amp);
       this->h->SetTitle(buf);
     }

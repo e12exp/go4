@@ -156,10 +156,10 @@ int CalifaParser::parseSubEvent(TGo4MbsSubEvent* psubevt)
       p=next;
     }
   this->subevent_count++;
-  ldbg("parsing of subevent %d completed successfully with %d good and %d / %d  bad gosip/event headers!\n",
-	this->subevent_count, goodheaders, badgosipheaders, badeventheaders);
   this->multiplicity=this->eventmap.size();
-  return badgosipheaders+badeventheaders;
+  ldbg("parsing of subevent %d completed successfully with %d good and %d / %d  bad gosip/event headers, multiplicity %d.\n",
+       this->subevent_count, goodheaders, badgosipheaders, badeventheaders, this->multiplicity);
+ return badgosipheaders+badeventheaders;
 }
 
 CalifaParser::eventmap_t* CalifaParser::getCalifaEvents()
@@ -266,7 +266,7 @@ void CalifaParser::updateWRTS(uint32_t system_id, uint64_t wrts)
   
 }
 
-CalifaParser::module_index_t CalifaParser::parseGosipHeader(uint32_t *&p,
+module_index_t CalifaParser::parseGosipHeader(uint32_t *&p,
 						      eventinfo_t* &ei, uint32_t* &next, uint8_t control)
 {
   linfo("gosip first word : @%lx is %lx\n", p, *p);
@@ -287,6 +287,7 @@ CalifaParser::module_index_t CalifaParser::parseGosipHeader(uint32_t *&p,
   next=p+gosip_sub->data_size/4;
   //linfo("calculated next pointer to be")
   //on error, skip to next submodule
+  uint8_t pc_id{7};
   if (gosip_sub->data_size == 0 
       //empty event marks end of stream???
       || gosip_sub->submemory_id == 0xff 
@@ -302,28 +303,24 @@ CalifaParser::module_index_t CalifaParser::parseGosipHeader(uint32_t *&p,
       return IDX_INVALID;
     }
 
-  uint8_t sfp_offset=70;
-  if (control==90)
+  if (90<=control && control<=93)
     {
-      sfp_offset=10;
-    }
-  else if (control==91)
-    {
-      sfp_offset=20;
+      pc_id=control-90; // 0: m0, 1: w1, 2: m1, 3: w1
     }
   else
     {
-      lerror("I do not know about SE_CONTROL==%d, will assign an sfp offset of %d to them.\n", control, sfp_offset);
+      lerror("I do not know about SE_CONTROL==%d, will assign a pc_id of %d to them.\n", control, pc_id);
     }
 
   uint8_t mod=gosip_sub->module_id;
   if (NOMODULES)
     mod=0;
   //linfo("found a good event\n");
-  module_index_t idx=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx,
-				     (uint8_t)(gosip_sub->sfp_id)+sfp_offset,
-				     mod,
-				     gosip_sub->submemory_id);
+  module_index_t idx={fbxChannelIdx,
+                      pc_id,
+                      gosip_sub->sfp_id,
+                      mod,
+                      gosip_sub->submemory_id};
   
   bool duplicate=0;
   if (this->eventmap.count(idx))
@@ -351,20 +348,20 @@ CalifaParser::module_index_t CalifaParser::parseGosipHeader(uint32_t *&p,
 
 int CalifaParser::parseCalifaHit(uint32_t *&pl_tmp,
 			     eventinfo_t* ei,
-			     CalifaParser::module_index_t idx)
+			     module_index_t idx)
 {
   // hack: only add the califa stuff to tsmap now
 
-  if (GET_MOD(idx)<16)
+  if (idx.mod<16)
     {
       // regular califa range
       updateWRTS(this->lastSysID, this->last_ts);
     }
   else
     {
-      updateWRTS(0xf000+(GET_SFP(idx)<<4)+GET_CH(idx), this->last_ts);
+      updateWRTS(0xf00000+(idx.pc_id<<6)+(idx.sfp<<4)+idx.ch, this->last_ts);
     }
-#define FAKE_MAIN 1
+#define FAKE_MAIN 0
 #if FAKE_MAIN
   if (idx==IDX(10,3,10))
     {
@@ -502,7 +499,7 @@ int CalifaParser::parseCalifaHit(uint32_t *&pl_tmp,
 
   for (auto& st: virtevent_types)
     {
-      auto vidx=CalifaParser::toIdxType(st, idx);
+      auto vidx=toIdxType(st, idx);
       if (vidx!=IDX_INVALID)
 	{
 	  if (!eventmap.count(vidx))

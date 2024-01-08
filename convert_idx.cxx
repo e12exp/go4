@@ -2,6 +2,8 @@
 #include "convert_idx.h"
 #include <cassert>
 #include <stdio.h>
+
+#if 0
 //converts febex channels (0..15) to mesytec channels (1..16)
 int febex2preamp(int fbxch)
 {
@@ -31,12 +33,12 @@ static crystal_pos_idx_t febex2crystal(califa_febex_idx_t i)
   uint8_t theta_idx=0;
   uint8_t phi_idx  =0;
   
-  uint8_t fbx_sfp=GET_SFP(i);
+  uint8_t fbx_sfp=i->sfp;
   assert(fbx_sfp==0);
-  uint8_t fbx_mod=GET_MOD(i);
+  uint8_t fbx_mod=i->mod;
   petal_idx+=fbx_mod/4;
   theta_idx+=4*(fbx_mod%4);
-  uint8_t fbx_ch =GET_CH(i);
+  uint8_t fbx_ch =i->ch;
   theta_idx+=thetamap[fbx_ch];
   phi_idx+=phimap[fbx_ch];
 
@@ -50,7 +52,7 @@ std::map<califa_febex_idx_t, crystal_pos_idx_t> init_febex2crystal()
     for (uint8_t mod=0; mod<8; mod++)
       for (uint8_t ch=0; ch<16; ch++)
 	{
-	  auto fbx_idx=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx, sfp, mod, ch);
+	  module_index_t fbx_idx={CalifaParser::subEventIdxType::fbxChannelIdx, pc_id, sfp, mod, ch};
 	  r[fbx_idx]=febex2crystal(fbx_idx);
 	  /*	  printf("fbx %d %d %d - > crystal %d %d %d",
 		 GET_SFP(fbx_idx), GET_MOD(fbx_idx), GET_CH(fbx_idx),
@@ -73,3 +75,4 @@ std::map<crystal_pos_idx_t, califa_febex_idx_t> init_crystal2febex()
 }
 std::map<crystal_pos_idx_t, califa_febex_idx_t> idx_map_crystal2febex=init_crystal2febex();
 
+#endif
