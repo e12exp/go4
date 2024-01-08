@@ -155,6 +155,9 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       new HistFillerSubprocessor<TH(1,I), 1>(any, axis_full_delay);
       new HistFillerSubprocessor<TH(2,I), 1>(any, qpid_axis, 2);
 
+
+      new HistFillerSubprocessor<TH(2,I), 2>({any, any}, {axis_fbx_pc_channel, axis_fbx_pc_channel});
+
       globals_initialized++;
 
       
@@ -242,10 +245,15 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
     {
       //      {IDX(0, 0, 0), {IDX(0, 0, 1)}},
       // {IDX(0, 0, 1), {IDX(0, 0, 2)}},
-      {IDX(13, 16, 4),
+      {IDX(10, 0, 1),
        {
-	 IDX(23, 16, 4)
+	 IDX(10, 0, 5)
+       }},
+      {IDX(10, 1, 1),
+       {
+	 IDX(10, 1, 15)
        }}
+
       //, 
       /*{IDX(0, 7, 0),
        {
@@ -272,6 +280,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
 	//						 &idx, &axis_full_energy);
       new HistFillerSubprocessor<TH(1,I), 1>(idx, axis_lim_energy);
       new HistFillerSubprocessor<TH(1,I), 1>(idx, axis_full_discr_amp);
+      new HistFillerSubprocessor<TH(1,I), 1>(idx, axis_full_discr_max);
       //new HistFillerSubprocessor<TH(1,I), 1>(&idx, &axis_full_energy);
       ldbg("created a new energy processor for %d:%d:%d.\n", 
 	   GET_SFP(idx), GET_MOD(idx), 
@@ -310,6 +319,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
       {
 	//	    BaselineHistSubprocessor* bhp=
 	new BaselineHistSubprocessor("baseline", idx);
+	new BaselineHistSubprocessor("baseline_100", idx, 1./100);
       }
       
       //single traces
@@ -322,7 +332,7 @@ void OnDemandSubprocessor::addChannel(CalifaParser* p, CalifaParser::module_inde
 	this->trace_subprocessors[idx]=tp;
       }
       //FFT
-      if (0)
+      if (1)
       {
 	//	    FourierSpectrumSubprocessor *fftp=
 	new FourierSpectrumSubprocessor("fft_amp", "fft_phase", 

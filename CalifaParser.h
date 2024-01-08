@@ -46,7 +46,9 @@
 class CalifaParser
 {
  public:
-  static const bool CHECK_EVT_TYPE=1;
+  static const bool CHECK_EVT_TYPE=0;
+  static const bool NOMODULES=0; // map all module indices to zero (for testing febex)
+  
   // if true, skip anything not matching:
   static const uint32_t FEBEX_PROC_ID=0xd;
   static const uint32_t FEBEX_EVT_TYPE=0x64;
@@ -164,6 +166,7 @@ class CalifaParser
   uint32_t lastSysID;
   uint32_t subevent_count;
   unsigned int multiplicity;
+
   //immediate storage:
   //  event_t evts;
   //gosip_header_t gossip;

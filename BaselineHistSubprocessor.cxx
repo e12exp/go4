@@ -1,8 +1,10 @@
 #include "BaselineHistSubprocessor.h"
 
 BaselineHistSubprocessor::BaselineHistSubprocessor(char* name,
-						 module_index_t idx)
+                                                   module_index_t idx,
+                                                   double downscale)
   : SingleChannelSubprocessor(name, idx, 1<<16, (1<<15)-1, -(1<<15))
+  ,  downscale(downscale)
 {
 
 }
@@ -18,5 +20,6 @@ void BaselineHistSubprocessor::processSubevent(CalifaParser::module_index_t cidx
 	{
 	  this->h->Fill((double)getTracePoint(ei.trace, i));
 	}
+      this->h->Scale(downscale);
     }
 }

@@ -45,8 +45,9 @@ template<class HistType, int nAxis, int nIdx, bool hasWeight=0>
   const char* makeHistName(std::array<CalifaParser::module_index_t, nIdx> idx,
                            std::array<HistogramAxis, nAxis> h);
   virtual void processEvent(CalifaParser* p);
+
+  virtual void processEventIdx(CalifaParser* p, module_index_t idx[nIdx]); // not part of the interface
  protected:
-  virtual void processEventIdx(CalifaParser* p, module_index_t idx[nIdx]);
 
   virtual CalifaParser::module_index_t getSensitivity()
   {

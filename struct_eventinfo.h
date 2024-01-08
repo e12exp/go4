@@ -18,7 +18,7 @@ typedef struct eventinfo
   double trace_en_diff; 
   double trace0, bl_slope; 
   double discr_amp;
-  
+  int discr_max{-1};
   double calEnergy;
   eventinfo& operator+=(event_t* rhs)
   {

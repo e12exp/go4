@@ -1,4 +1,7 @@
 #!/bin/bash
+source /u/land/fake_cvmfs/sourceme.sh ""
+source go4login 
+
 EXE=""
 if test "$1"  == "-g"
 then

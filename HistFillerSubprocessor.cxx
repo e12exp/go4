@@ -19,11 +19,54 @@ HistFillerSubprocessor<HistType, nAxis, nIdx, hasWeight>::HistFillerSubprocessor
   for (int i=0; i<nAxis+hasWeight; i++)
     this->getVal[i]=h[i].getValue;
 
-  if (nIdx!=1)
+  if (nIdx>2)
     for (int i=0; i<nIdx; i++)
-      assert(idx[i]!=IDX_ANY);
+      assert(idx[i]!=IDX_ANY && "May not use IDX_ANY for nIdx>2");
+
+  if (nIdx==2)
+    assert( (idx[0]==IDX_ANY)==(idx[1]==IDX_ANY) && "Either both indices must be any or none of them");
+  
 }
 
+
+template<class T, int nIdx>
+struct AnyHelper
+{
+  static void processEventAny(T, CalifaParser* p)
+  {
+    assert(0 && "IDX_ANY not supported for nIdx>2");
+  }
+};
+
+template<class T>
+struct AnyHelper<T, 1>
+{
+  static void processEventAny(T t, CalifaParser* p)
+  {
+    CalifaParser::eventmap_t* evts=p->getCalifaEvents();
+    for (auto i=evts->begin(); i!=evts->end(); ++i)
+      {
+        auto single_idx=i->first;
+        t->processEventIdx(p, &single_idx);
+      }
+  }
+};
+  
+template<class T>
+struct AnyHelper<T, 2>
+{
+  static void processEventAny(T t, CalifaParser* p)
+  {
+    CalifaParser::eventmap_t* evts=p->getCalifaEvents();
+    for (const auto& i: *evts)
+      for (const auto& j: *evts)
+        {
+          CalifaParser::module_index_t idx[2]={i.first, j.first};
+          if (i.first!=j.first)
+            t->processEventIdx(p, idx);
+        }
+  }
+};
 
 template<class HistType, int nAxis, int nIdx, bool hasWeight>
 void HistFillerSubprocessor<HistType, nAxis, nIdx, hasWeight>::processEvent(CalifaParser* p)
@@ -31,15 +74,11 @@ void HistFillerSubprocessor<HistType, nAxis, nIdx, hasWeight>::processEvent(Cali
   if (this->idx[0]!=IDX_ANY)
     this->processEventIdx(p, this->idx);
   else
-    {
-      CalifaParser::eventmap_t* evts=p->getCalifaEvents();
-      for (auto i=evts->begin(); i!=evts->end(); ++i)
-	{
-	   auto single_idx=i->first;
-	   this->processEventIdx(p, &single_idx);
-	}
-    }
+    AnyHelper<decltype(this), nIdx>::processEventAny(this, p);  
 }
+
+
+
 
 // this is bad, but still better than std::integer_sequence
 template<class HistType, int n>

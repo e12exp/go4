@@ -116,7 +116,13 @@ int CalifaParser::parseSubEvent(TGo4MbsSubEvent* psubevt)
   if (CHECK_EVT_TYPE
       && (evt_type != FEBEX_EVT_TYPE || subevt_type != FEBEX_SUBEVT_TYPE || procid != FEBEX_PROC_ID))
     {
-      linfo("ignored event with evt_type=0x%x, subevent_type=0x%x, procid=0x%x\n", evt_type, subevt_type, procid);
+      static std::set<std::tuple<uint32_t, uint32_t, uint32_t>> ignored_warned;
+      auto t=std::make_tuple(evt_type, subevt_type, procid);
+      if (!ignored_warned.count(t))
+        {
+          lerror("ignored event with evt_type=0x%x, subevent_type=0x%x, procid=0x%x\n", evt_type, subevt_type, procid);
+          ignored_warned.insert(t);
+        }
       return 0; 
     }
   
@@ -309,11 +315,16 @@ CalifaParser::module_index_t CalifaParser::parseGosipHeader(uint32_t *&p,
     {
       lerror("I do not know about SE_CONTROL==%d, will assign an sfp offset of %d to them.\n", control, sfp_offset);
     }
+
+  uint8_t mod=gosip_sub->module_id;
+  if (NOMODULES)
+    mod=0;
   //linfo("found a good event\n");
   module_index_t idx=std::make_tuple(CalifaParser::subEventIdxType::fbxChannelIdx,
 				     (uint8_t)(gosip_sub->sfp_id)+sfp_offset,
-				     (uint8_t)(gosip_sub->module_id),
+				     mod,
 				     gosip_sub->submemory_id);
+  
   bool duplicate=0;
   if (this->eventmap.count(idx))
     {
@@ -353,9 +364,9 @@ int CalifaParser::parseCalifaHit(uint32_t *&pl_tmp,
     {
       updateWRTS(0xf000+(GET_SFP(idx)<<4)+GET_CH(idx), this->last_ts);
     }
-#define FAKE_MAIN 0
+#define FAKE_MAIN 1
 #if FAKE_MAIN
-  if (idx==IDX(13,16,1))
+  if (idx==IDX(10,3,10))
     {
       //      printf("faking main wrts!\n");
       updateWRTS(0x1000, this->last_ts);
@@ -564,15 +575,16 @@ void CalifaParser::traceAnalysis(eventinfo_t* ei)
 
 }
 
+#define TRIG_GATE 
 
 void CalifaParser::traceTrigAnalysis(eventinfo_t* ei)
 {
   // we are assuming decimated 25MHz traces, so we use half the values
   // from febex.db
-  const int discr_int=12; // how many samples to integrate?
-  const int discr_gap=25; // gap of trapezoidal filter
+  const int discr_int=24/2; // how many samples to integrate?
+  const int discr_gap=50/2; // gap of trapezoidal filter
   const int discr_shift_right=3; // gap of trapezoidal filter
-
+  const int margin=5;
   auto h=ei->trace;
   if (!h)
     {
@@ -582,7 +594,8 @@ void CalifaParser::traceTrigAnalysis(eventinfo_t* ei)
 
   double m{};
   double filt{};
-  for (unsigned int i=0; i<std::min(ei->tracepoints, 80U); i++)
+  int maxPos;
+  for (unsigned int i=0; i<ei->tracepoints-margin; i++)
     {
       filt+=getTracePoint(h, i          )-getTracePoint(h, i-discr_int);
       filt-=getTracePoint(h, i-discr_gap)-getTracePoint(h, i-discr_int-discr_gap);
@@ -591,11 +604,14 @@ void CalifaParser::traceTrigAnalysis(eventinfo_t* ei)
              i, filt,
              getTracePoint(h, i          )-getTracePoint(h, i-discr_int),
              getTracePoint(h, i-discr_gap)-getTracePoint(h, i-discr_int-discr_gap));
-      if (m<filt)
+      if (m<filt && i>discr_int+discr_gap+margin)
         {
+          
           //printf("new max!\n");
           m=filt;
+          maxPos=i;
         }
     }
   ei->discr_amp=m/pow(2, discr_shift_right);
+  ei->discr_max=maxPos;
 }

@@ -1,7 +1,7 @@
 #!/bin/bash
 #test -f sourceme.sh && source sourceme.sh
 
-/u/land/fake_cvmfs/sourceme.sh
+. /u/land/fake_cvmfs/sourceme.sh ""
 
 . go4login
 
@@ -22,7 +22,7 @@ if ls "$@" &>/dev/null
 then
     echo "Looks like files to me."
     sed "s@__FILE__@$@@g" file_hotstart.template >$OUT
-
+    echo sed "s@__FILE__@$@@g" file_hotstart.template
 else
     echo "looks like a server designation to me"
     
